@@ -166,7 +166,8 @@ class ASLM_controller:
                                                          self,
                                                          self.verbose,
                                                          configuration_controller)
-
+                        
+        # Waveform Controller
         self.waveform_tab_controller = Waveform_Tab_Controller(self.view.camera_waveform.waveform_tab,
                                                                self,
                                                                self.verbose)

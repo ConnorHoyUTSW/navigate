@@ -94,6 +94,8 @@ class Stage_GUI_Controller(GUI_Controller):
 
         if configuration_controller:
             self.initialize(configuration_controller)
+
+        # WASD Init
         self.count = 0
         self.mouse_scrolls = 0
         self.parent_view = parent_view
@@ -121,20 +123,20 @@ class Stage_GUI_Controller(GUI_Controller):
             self.set_position(updated_position)
 
     def key_press(self, event):
-      char = event.char
-      position_o = self.get_position()
-      current_position = position_o
-      x_increment = self.widget_vals["x_step"].get()
-      y_increment = self.widget_vals["y_step"].get()
-      if char.lower() == "w":
-          current_position['y'] += y_increment
-      elif char.lower() == "a":
-          current_position['x'] -= x_increment
-      elif char.lower() == "s":
-          current_position['y'] -= y_increment
-      elif char.lower() == "d":
-          current_position['x'] += x_increment
-      self.set_position(current_position)  
+        char = event.char
+        position_o = self.get_position()
+        current_position = position_o
+        x_increment = self.widget_vals["x_step"].get()
+        y_increment = self.widget_vals["y_step"].get()
+        if char.lower() == "w":
+            current_position['y'] += y_increment
+        elif char.lower() == "a":
+            current_position['x'] -= x_increment
+        elif char.lower() == "s":
+            current_position['y'] -= y_increment
+        elif char.lower() == "d":
+            current_position['x'] += x_increment
+        self.set_position(current_position)  
 
     def initialize(self, config):
         r"""Initialize the Stage limits of steps and positions
@@ -422,3 +424,7 @@ class Stage_GUI_Controller(GUI_Controller):
             self.show_verbose_info('Stage position changed')
         
         return handler
+
+
+
+ 

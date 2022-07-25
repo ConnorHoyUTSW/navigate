@@ -41,7 +41,7 @@ if platform.system() != 'Darwin':
     import tensorflow as tf
 
 # Local Imports
-from aslm.model.analysis import image_decorrelation as image_decorrelation
+from aslm.model.analysis.resolution import image_decorrelation as image_decorrelation
 
 # Logger Setup
 p = __name__.split(".")[1]
@@ -65,7 +65,7 @@ class Analysis:
         self.use_gpu = use_gpu
 
         if use_gpu:
-            from aslm.model.analysis import flatfield as flatfield
+            pass
 
     def __del__(self):
         pass

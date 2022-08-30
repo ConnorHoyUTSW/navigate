@@ -11,6 +11,42 @@ from aslm.model.devices.lasers.LaserBase import LaserBase
 p = __name__.split(".")[1]
 logger = logging.getLogger(p)
 
+commands = {
+    "l_model": "GFw",
+    "l_cabibration_date": "",
+    "l_serial_num": "",
+    "l_part_num": "",
+    "l_firmware_version": "",
+    "l_wavelength": "",
+    "l_power_rating": "",
+    "l_min_power": "",
+    "l_max_power": "",
+    "l_output_power_level": "",
+    "l_output_current": "",
+    "l_opperating_mode": "",
+    "l_current_power_level": "",
+    "l_status": "",
+    "l_state": "",
+    "l_system_fault": "",
+
+    # set commands and values will need to be passed in function
+    # valid value are ON or OFF
+    "set_blanking": "",
+
+    # Set operating mode Internal - valid values = CWP|CWC
+    # Note CWC didnt work when base testing
+    "set_operating_mode_int": "",
+
+    # Set operating mode External - valid values = DIGital|ANALog|MIXed|DIGSO|MIXSO
+    # Note DIGSO|MIXSO didnt work when base testing
+    "set_operating_mode_ext": "",
+
+    # Set power level - needs to be exactly 5 decimal places or it will not work!
+    "set_power_level": "",
+
+    # Set laser state - valid values = ON or OFF
+    "set_state": "",
+}
 
 class LuxxLaser(LaserBase):
     def __init__(self, comport):

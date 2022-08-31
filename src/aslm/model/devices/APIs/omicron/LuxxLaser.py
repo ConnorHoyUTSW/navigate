@@ -13,39 +13,30 @@ logger = logging.getLogger(p)
 
 commands = {
     "l_model": "GFw",
-    "l_cabibration_date": "",
-    "l_serial_num": "",
+    "l_serial_num": "GSH",
+    "l_firmware_version": "GFH",
+    "l_output_current": "MID",
+    "l_opperating_mode": "GOM",
+    "l_state": "GAS",
+    "l_system_fault": "GFB",
+
+    "set_operating_mode": "SOM",
+    "set_power_on": "POn",
+    "set_power_off": "POf",
+
+    # Dont know if these commands exist yet (or need my research)
+    # I see there might be a calibration function
+    "l_calibration_date": "",
     "l_part_num": "",
-    "l_firmware_version": "",
     "l_wavelength": "",
     "l_power_rating": "",
     "l_min_power": "",
     "l_max_power": "",
     "l_output_power_level": "",
-    "l_output_current": "",
-    "l_opperating_mode": "",
     "l_current_power_level": "",
     "l_status": "",
-    "l_state": "",
-    "l_system_fault": "",
-
-    # set commands and values will need to be passed in function
-    # valid value are ON or OFF
-    "set_blanking": "",
-
-    # Set operating mode Internal - valid values = CWP|CWC
-    # Note CWC didnt work when base testing
-    "set_operating_mode_int": "",
-
-    # Set operating mode External - valid values = DIGital|ANALog|MIXed|DIGSO|MIXSO
-    # Note DIGSO|MIXSO didnt work when base testing
-    "set_operating_mode_ext": "",
-
-    # Set power level - needs to be exactly 5 decimal places or it will not work!
     "set_power_level": "",
-
-    # Set laser state - valid values = ON or OFF
-    "set_state": "",
+    
 }
 
 class LuxxLaser(LaserBase):

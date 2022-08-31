@@ -16,9 +16,14 @@ commands = {
     "l_serial_num": "GSH",
     "l_firmware_version": "GFH",
     "l_output_current": "MID",
+    # look into ROM as it is a similar command to GOM
     "l_opperating_mode": "GOM",
     "l_state": "GAS",
     "l_system_fault": "GFB",
+    "l_max_power": "GMP",
+
+    "l_wavelength": "GSI",
+    "l_output_power_level": "GSI",
 
     "set_operating_mode": "SOM",
     "set_power_on": "POn",
@@ -28,11 +33,9 @@ commands = {
     # I see there might be a calibration function
     "l_calibration_date": "",
     "l_part_num": "",
-    "l_wavelength": "",
+    
     "l_power_rating": "",
     "l_min_power": "",
-    "l_max_power": "",
-    "l_output_power_level": "",
     "l_current_power_level": "",
     "l_status": "",
     "set_power_level": "",

@@ -274,7 +274,9 @@ def start_lasers(configuration):
                 print("Initializing 561 nm Obis Laser")
                 comport = 'COM4'
                 laser[laser_idx] = obis(comport)
-                laser[laser_idx].set_laser_operating_mode('mixed')
+                # laser[laser_idx].set_laser_operating_mode('mixed')
+                # updated with new functions in OBIS
+                laser[laser_idx].send('set_operating_mode_ext', 'MIXed')
 
             elif laser_idx == 2:
                 # 642 nm LuxX laser

@@ -1,12 +1,43 @@
+"""Copyright (c) 2021-2022  The University of Texas Southwestern Medical Center.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted for academic and research use only (subject to the limitations in the disclaimer below)
+provided that the following conditions are met:
+
+     * Redistributions of source code must retain the above copyright notice,
+     this list of conditions and the following disclaimer.
+
+     * Redistributions in binary form must reproduce the above copyright
+     notice, this list of conditions and the following disclaimer in the
+     documentation and/or other materials provided with the distribution.
+
+     * Neither the name of the copyright holders nor the names of its
+     contributors may be used to endorse or promote products derived from this
+     software without specific prior written permission.
+
+NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY
+THIS LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
 """
-Obis Laser Class
-OBIS561, 150 mW, is COM4
-Useful information can be found on Page C-22 of the OBIS_LX_LS Operators Manual
-"""
+# Help
+# https://www.micron.ox.ac.uk/software/microscope/_modules/microscope/lights/obis.html
+
+# Standard Library Imports
 import logging
 from pathlib import Path
 
 import serial
+from serial import SerialTimeoutException
 from time import time, sleep
 
 from aslm.model.devices.lasers.LaserBase import LaserBase
@@ -15,11 +46,94 @@ from aslm.model.devices.lasers.LaserBase import LaserBase
 p = __name__.split(".")[1]
 logger = logging.getLogger(p)
 
+errors = {
+    '-400': "Query Unavailable",
+    "-350": "Queue overflow",
+    "-321": "Out of memory",
+    "-310": "System error",
+    "-257": "File to open not named",
+    "-256": "File does not exist",
+    "-241": "Device unavailable",
+    "-221": "Settings conflict",
+    "-220": "Invalid parameter",
+    "-203": "Command protected",
+    "-200": "Execution error (command is out of order). Are you setting a parameter while the laser is in an ON state?",
+    "-109": "Parameter missing",
+    "-102": "Syntax error",
+    "-100": "Unrecognized command or query",
+    "0": "No error",
+    "500": "CCB fault",
+    "510": "I2C bus fault",
+    "520": "Controller time out",
+    "900": "CCB message timed out"
+}
+
+# ToDO - add fault status here if need be
+fault = {
+    '00000000': 'A value of 0 indicates no fault conditions',
+}
+
+# Started to add dictionary but I have not tested it out
+commands = {
+    # commands to get info from laser
+    "l_model": "SYSTem:INFormation:MODel?",
+    "l_calibration_date": "SYSTem:INFormation:CDATe?",
+    "l_serial_num": "SYSTem:INFormation:SNUMber?",
+    "l_part_num": "SYSTem:INFormation:PNUMber?",
+    "l_firmware_version": "SYSTem:INFormation:FVERsion?",
+    "l_wavelength": "SYSTem:INFormation:WAVelength?",
+    "l_power_rating": "SYSTem:INFormation:POWer?",
+    "l_min_power": "SOURce:POWer:LIMit:LOW?",
+    "l_max_power": "SOURce:POWer:LIMit:HIGH?",
+    "l_output_power_level": "SOURce:POWer:LEVel?",
+    "l_output_current": "SOURce:POWer:CURRent?",
+    "l_opperating_mode": "SOURce:AM:SOURce?",
+    "l_current_power_level": "SOURce:POWer:LEVel:IMMediate:AMPLitude?",
+    "l_status": "SYSTem:STATus?",
+    "l_state": "SOURce:AM:STATe?",
+    "l_system_fault": "SYSTem:FAULt?",
+
+    # set commands and values will need to be passed in function
+    # valid value are ON or OFF
+    "set_blanking": "SOURce:AModulation:BLANKing",
+
+    # Set operating mode Internal - valid values = CWP|CWC
+    # Note CWC didnt work when base testing
+    "set_operating_mode_int": "SOURce:AM:INTernal",
+
+    # Set operating mode External - valid values = DIGital|ANALog|MIXed|DIGSO|MIXSO
+    # Note DIGSO|MIXSO didnt work when base testing
+    "set_operating_mode_ext": "SOURce:AM:EXTernal",
+
+    # Set power level - needs to be exactly 5 decimal places or it will not work!
+    "set_power_level": "SOURce:POWer:LEVel:IMMediate:AMPLitude",
+
+    # Set laser state - valid values = ON or OFF
+    "set_state": "SOURce:AM:STATe",
+
+
+    # unrecognized commands Below
+    "l_blanking_status": "SOURce:AModulation:BLANKing?",
+    "l_analog_type": "SYSTem:INFormation:AMODulation:TYPe?",
+    # set analog mod type - valid values = 1 or 2
+    "set_analog_type": "SYSTem:INFormation:AMODulation:TYPe",
+    # set blanking status - valid values = On or OFF
+    "set_blanking_status": "SOURce:AModulation:BLANKing",
+}
+
 class ObisLaser(LaserBase):
-    def __init__(self,
-                 port='COM4'):
+    """
+    Obis Laser Class
+    OBIS561, 150 mW, is COM4
+    Useful information can be found on Page C-22 of the OBIS_LX_LS Operators Manual
+    """
+
+    # took out verbose but you might have to change the com port as you use it
+    def __init__(self, port='COM28'):
+    # def __init__(self, port='COM4'):
         self.timeout = 0.05
-        self.end_of_line = '\r'
+        self.end_of_line = '\r\n'
+        # self.verbose = verbose
 
         try:
             # Open serial port
@@ -59,145 +173,56 @@ class ObisLaser(LaserBase):
         except serial.SerialException:
             print('could not close the port')
 
-    def get_laser_model(self):
-        """
-        # Get the laser model.
-        """
-        command = "?SYSTem:INFormation:MODel?"
-        laser_model = self.ask(command)
-        self.laser_model = laser_model
-        return laser_model
 
-    def get_laser_wavelength(self):
-        """
-        # Get the current laser wavelength in nm.
-        """
-        command = "SYSTem:INFormation:WAVelength?"
-        laser_wavelength = self.ask(command)
-        self.laser_wavelength = laser_wavelength
-        return laser_wavelength
+    def send(self, command, value=''):
+        try:
+            # response = self.laser.write((command + value + self.end_of_line).encode())
+            response = self.laser.write((" ".join(commands[command], value, self.end_of_line)).encode())
+            # print (command + value + self.end_of_line)
+        except SerialTimeoutException as e:
+            print(e)
+        sleep(0.5)
+        print(command + value)
 
-    def get_minimum_laser_power(self):
-        """
-        # Get the maximum laser power in mW.
-        """
-        command = "SOURce:POWer:LIMit:LOW?"
-        minimum_laser_power = self.ask(command)
-        self.minimum_laser_power = minimum_laser_power
-        return minimum_laser_power
+        self.read()
+        # return response
 
-    def get_maximum_laser_power(self):
-        """
-        # Get the maximum laser power in mW.
-        """
-        command = "SOURce:POWer:LIMit:HIGH?"
-        maximum_laser_power = self.ask(command)
-        self.maximum_laser_power = maximum_laser_power
-        return maximum_laser_power
 
-    def get_laser_power(self):
-        """
-        # Get the current laser power in mW.
-        """
-        command = "SOURce:POWer:LEVel?"
-        laser_power = self.ask(command)
-        self.laser_power = laser_power
-        return laser_power
+    #ToDo - Update with what might be needs to use the errors in the software or to log them
+    def read(self):
 
-    def get_ext_control(self):
-        """
-        # Get the external control status.
-        """
-        command = "SYSTem:EXTernal:CONTRol?"
-        ext_control = self.ask(command)
-        self.ext_control = ext_control
-        return ext_control
-
-    def get_laser_status(self):
-        """
-        # Get the current laser status.
-        """
-        command = "SOURce:STATus?"
-        laser_status = self.ask(command)
-        self.laser_status = laser_status
-        return laser_status
-
-    def set_laser_operating_mode(self, mode):
-        """
-        # Set the laser operating mode. Seven mutually exclusive operating modes are available
-        # CWP (continuous wave, constant power)
-        # CWC (continuous wave, constant current)
-        # DIGITAL (CW with external digital modulation)
-        # ANALOG (CW with external analog modulation)
-        # MIXED (CW with external digital + analog modulation)
-        # DIGSO (External digital modulation with power feedback) Note: This
-        # operating mode is not supported in some device models.
-        # MIXSO (External mixed modulation with power feedback) Note: This
-        # operating mode is not supported in some device models.
-        """
-        if mode == 'cwp':
-            command = "SOURce:AM:INTernal CWP"
-        elif mode == 'cwc':
-            command = "SOURce:AM:INTernal CWC"
-        elif mode == 'digital':
-            command = "SOURce:AM:EXTernal DIGital"
-        elif mode == 'analog':
-            command = "SOURce:AM:EXTernal ANALog"
-        elif mode == 'mixed':
-            command = "SOURce:AM:EXTernal MIXed"
-        elif mode == 'digso':
-            command = "SOURce:AM:EXTernal DIGSO"
-        elif mode == 'mixso':
-            command = "SOURce:AM:EXTernal MIXSO"
-        else:
-            print("Invalid mode")
-            return
-
-        self.laser.write(command.encode())
-
-    def get_laser_operating_mode(self):
-        """
-        # Get the laser operating mode.
-        """
-        #  TODO: Fix
-
-        command = "SOURce:AM:SOURce?"
-        laser_operating_mode = self.ask(command)
-        if ("CWP" in laser_operating_mode):
-            self.laser_operating_mode = "cwp"
-        elif ("CWC" in laser_operating_mode):
-            self.laser_operating_mode = "cwc"
-        elif ("DIGITAL" in laser_operating_mode):
-            self.laser_operating_mode = "digital"
-        elif ("ANALOG" in laser_operating_mode):
-            self.laser_operating_mode = "analog"
-        elif ("MIXED" in laser_operating_mode):
-            self.laser_operating_mode = "mixed"
-        elif ("DIGSO" in laser_operating_mode):
-            self.laser_operating_mode = "digso"
-        elif ("MIXSO" in laser_operating_mode):
-            self.laser_operating_mode = "mixso"
-        else:
-            print("Invalid Laser Operating Mode")
-            return
-        return laser_operating_mode
-
-    def ask(self, command):
-        self.laser.write(str(command + self.end_of_line).encode())
         response = ''
-        read_iteration = self.laser.read()
-        while read_iteration != b'\r':
-            response += read_iteration.decode()
-            sleep(self.timeout)
-            read_iteration = self.laser.read()
-        return response
+        while result := self.laser.readline():
+            # print("Output: ",result)
+            # print(result.decode('ascii').strip('\r\n'))
+            if result == b'OK\r\n':
+                # result = "OK"
+                result = result.decode('ascii').strip('\r\n')
+                break
+            if result.startswith(b'ERR'):
+                # result = result.strip('ERR')
+                # print(f"Error {code}: {errors[code]}.")
+                code = result.decode('ascii').strip('\r\n')
+                message = code.strip('ERR')
+                result = f"Error: {code}, Message: {errors[message]}"
+                break
+            # response = result
+            response = result.decode('ascii').strip('\r\n')
 
-    def initialize_laser(self):
-        """
-        # Initialize the laser.
-        """
-        self.set_laser_operating_mode('mixed')
-        self.set_laser_power(self.get_maximum_laser_power())
+        # look into instead of using sleep make sure we get an OK or response we are expecting before we send another
+        # Fixing this would help speed up the code
+        sleep(.5)
+        print(f"Result: {result}, Resp: {response}")
+        return result, response
+
+
+    # funstion is as it descibles an is what was used to test all of the commands
+    def testing(self):
+
+        self.send(commands['l_state'])
+        self.send(commands['l_current_power_level'])
+        self.send(commands['set_power_level'], '.00200')
+
 
 
 

@@ -693,3 +693,10 @@ class Camera_View_Controller(GUI_Controller):
         """
         self.ilastik_seg_mask = cv2.applyColorMap(mask, self.mask_color_table)
         self.ilastik_mask_ready_lock.release()
+
+    def populate_meme(self, meme):
+        r"""Converts image to an ImageTk.PhotoImage and populates the Tk Canvas"""
+        img= (Image.open(meme))
+        resized_image= img.resize((520,520), Image.ANTIALIAS)
+        self.tk_image = ImageTk.PhotoImage(resized_image)
+        self.canvas.create_image(0, 0, image=self.tk_image, anchor='nw')

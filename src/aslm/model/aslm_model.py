@@ -269,6 +269,9 @@ class Model:
         # Ilastik segmentation
         self.feature_list.append([[{'name': IlastikSegmentation}]])
 
+        # Test feature
+        self.feature_list.append([[{'name': DisplayMemes}]])
+
     def get_camera(self):
         r"""Select active camera.
 

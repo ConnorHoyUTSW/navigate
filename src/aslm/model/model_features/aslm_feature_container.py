@@ -183,6 +183,7 @@ class DataContainer(Container):
             self.curr_node = self.root
         self.returned_a_response = False
         while self.curr_node:
+            print('running data node: ', self.curr_node.node_name)
             try:
                 result, is_end = self.curr_node.run(*args)
             except:

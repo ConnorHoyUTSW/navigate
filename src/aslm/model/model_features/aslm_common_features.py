@@ -31,6 +31,37 @@ POSSIBILITY OF SUCH DAMAGE.
 """
 
 
+
+
+
+class DisplayMemes:
+    '''
+    Displays a random meme that the lab has shared. And some imaging pictures as well.
+    '''
+    def __init__(self, model):
+        from pathlib import Path
+        import os
+        self.model = model
+        self.memes = []
+        base_dir = Path(__file__).resolve().parent
+        meme_dir = Path.joinpath(base_dir, 'memes')
+        for meme in os.listdir(meme_dir):
+            if os.path.isfile(os.path.join(meme_dir, meme)):
+                self.memes.append(Path.joinpath(meme_dir, meme))
+
+        self.config_table = {'signal': {},
+                             'data': {'main': self.data_func}}
+
+        
+    def data_func(self, frame_ids):
+        import random
+
+        for idx in frame_ids:
+            i = random.randrange(0, len(self.memes))
+            for r in range(30):
+                self.model.event_queue.put(('meme', self.memes[i]))
+
+
 class ChangeResolution:
     def __init__(self, model, resolution_mode='high'):
         self.model = model

@@ -365,7 +365,7 @@ class ASLM_controller:
         self.view.menubar.menu_autofocus.add_command(label='setting', command=popup_autofocus_setting)
 
         # add-on features
-        feature_list = ['None', 'Switch Resolution', 'Z Stack Acquisition', 'Threshold', 'Ilastik Segmentation']
+        feature_list = ['None', 'Switch Resolution', 'Z Stack Acquisition', 'Threshold', 'Ilastik Segmentation', 'Display Memes']
         self.feature_id_val = tkinter.IntVar(0)
         for i in range(len(feature_list)):
             self.view.menubar.menu_features.add_radiobutton(label=feature_list[i],
@@ -833,6 +833,8 @@ class ASLM_controller:
                 self.view.settings.channels_tab.multipoint_frame.on_off.set(True)  # assume we want to use multipos
             elif event == 'ilastik_mask':
                 self.camera_view_controller.display_mask(value)
+            elif event == 'meme':
+                self.camera_view_controller.populate_meme(value)
             elif event == 'stop':
                 break
     

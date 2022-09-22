@@ -8,8 +8,8 @@ from time import time
 from aslm.model.devices.lasers.LaserBase import LaserBase
 
 # Logger Setup
-p = __name__.split(".")[1]
-logger = logging.getLogger(p)
+# p = __name__.split(".")[1]
+# logger = logging.getLogger(p)
 
 commands = {
     "l_model": "GFw",
@@ -61,7 +61,7 @@ class LuxxLaser(LaserBase):
             # Open serial port
             self.laser = serial.Serial(self.comport, self.baudrate, timeout=self.timeout)
 
-            logger.debug(f"The laser is connected via {self.comport}")
+            # logger.debug(f"The laser is connected via {self.comport}")
 
 
             # Confirm the Laser Wavelength
@@ -71,24 +71,45 @@ class LuxxLaser(LaserBase):
             wavelength = wavelength.replace(b"\xa7140", str(" ").encode())
             wavelength = float(wavelength.decode())
             self.wavelength = wavelength
-            logger.debug(f"The Wavelength is: {wavelength}")
+            print(wavelength)
+            # logger.debug(f"The Wavelength is: {wavelength}")
 
             # Confirm the Laser Serial Number
             serial_number = self.ask("GSN")
             serial_number = serial_number.decode()
             self.serial = serial_number
-            logger.debug(f"The laser Serial Number: {serial_number}")
+            print(serial_number)
+            # logger.debug(f"The laser Serial Number: {serial_number}")
 
             # Confirm the Laser Working Hours
             laser_working_hours = self.ask("GWH")
             laser_working_hours = laser_working_hours.decode()
             self.hours = laser_working_hours
-            logger.debug(f"Laser working hours: {laser_working_hours}")
+            print(laser_working_hours)
+            # logger.debug(f"Laser working hours: {laser_working_hours}")
 
             # Confirm the Laser Maximum Power
             power_max = float(self.ask("GMP"))
             self.pmax = power_max
-            logger.debug(f"Laser max power: {power_max}")
+            print(power_max)
+            # logger.debug(f"Laser max power: {power_max}")
+
+            question = self.ask(commands['l_model'])
+            print(question)
+            question = self.ask(commands['l_serial_num'])
+            print(question)
+            question = self.ask(commands['l_firmware_version'])
+            print(question)
+            question = self.ask(commands['l_output_current'])
+            print(question)
+            question = self.ask(commands['l_opperating_mode'])
+            print(question)
+            question = self.ask(commands['l_state'])
+            print(question)
+            question = self.ask(commands['l_system_fault'])
+            print(question)
+            question = self.ask(commands['l_max_power'])
+            print(question)
 
         except serial.SerialException:
             raise OSError('Port "%s" is unavailable.\n' % self.comport +
@@ -105,7 +126,7 @@ class LuxxLaser(LaserBase):
 
             # Close the port
             self.laser.close()
-            logger.debug(f"Port closed")
+            # logger.debug(f"Port closed")
 
         except serial.SerialException:
             print('Could not close the port')

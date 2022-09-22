@@ -1,0 +1,34 @@
+The search string is: b'!GSI(.+)\n'
+The response string is: b'!GSI488\xa7200\n'
+488.0
+The search string is: b'!GSN(.+)\n'
+The response string is: b'!GSN2107-52\n'
+2107-52
+The search string is: b'!GWH(.+)\n'
+The response string is: b'!GWH1252\n'
+1252
+The search string is: b'!GMP(.+)\n'
+The response string is: b'!GMP200\n'
+200.0
+The search string is: b'!GFw(.+)\n'
+The response string is: b'!GFwLuxX\xa74\xa72.28\n'
+b'LuxX\xa74\xa72.28'
+Command 'GSH' is unknown for this device
+None
+Command 'GFH' is unknown for this device
+None
+The search string is: b'!MID(.+)\n'
+The response string is: b'!MID0.0\n'
+b'0.0'
+The search string is: b'!GOM(.+)\n'
+The response string is: b'!GOMF098\n'
+b'F098'
+The search string is: b'!GAS(.+)\n'
+The response string is: b'!GAS0282\n'
+b'0282'
+The search string is: b'!GFB(.+)\n'
+The response string is: b'!GFB0000\n'
+b'0000'
+The search string is: b'!GMP(.+)\n'
+The response string is: b'!GMP200\n'
+b'200'

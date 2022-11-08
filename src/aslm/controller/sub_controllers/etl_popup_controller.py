@@ -137,13 +137,15 @@ class EtlPopupController(GUIController):
         Update the widget ranges and precisions based on the current resolution mode.
         """
         # TODO: 
-        if self.resolution == 'Nanoscale':
-            precision = -3
-            increment = 0.001
-        else:
-            # resolution is low
-            precision = -2
-            increment = 0.01
+        # if self.resolution == 'Nanoscale':
+        #     precision = -3
+        #     increment = 0.001
+        # else:
+        #     # resolution is low
+        #     precision = -2
+        #     increment = 0.01
+        precision = -3
+        increment = 0.001
 
         laser_min = self.configuration_controller.remote_focus_dict['hardware']['min']
         laser_max = self.configuration_controller.remote_focus_dict['hardware']['max']

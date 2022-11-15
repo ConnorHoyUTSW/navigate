@@ -30,32 +30,20 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # """
 
-# Standard Library Imports
-import unittest
-
-# Third Party Imports
-
-# Local Imports
-from aslm.model.devices.zoom.zoom_synthetic import SyntheticZoom
-from aslm.model.dummy import DummyModel
-
-
-class TestZoomSynthetic(unittest.TestCase):
-    r"""Unit Test for SyntheticZoom Class"""
-
-    dummy_model = DummyModel()
-    microscope_name = 'Mesoscale'
-    zoom_class = SyntheticZoom(microscope_name, None, dummy_model.configuration)
-
-    def test_zoom_synthetic_attributes(self):
-
-        assert hasattr(self.zoom_class, 'zoomdict')
-        assert hasattr(self.zoom_class, 'zoomvalue')
-
-        assert hasattr(self.zoom_class, 'set_zoom') and callable(getattr(self.zoom_class, 'set_zoom'))
-        assert hasattr(self.zoom_class, 'move') and callable(getattr(self.zoom_class, 'move'))
-        assert hasattr(self.zoom_class, 'read_position') and callable(getattr(self.zoom_class, 'read_position'))
-
-
-if __name__ == '__main__':
-    unittest.main()
+def test_stage_synthetic_functions():
+    from aslm.model.devices.stages.stage_synthetic import SyntheticStage
+    from aslm.model.dummy import DummyModel
+    
+    model = DummyModel()
+    microscope_name = model.configuration['experiment']['MicroscopeState']['microscope_name']
+    stage_base = SyntheticStage(microscope_name, None, model.configuration)
+    stage_config = model.configuration['configuration']['microscopes'][microscope_name]['stage']
+    
+    funcs = ['report_position', 'move_axis_absolute', 'move_absolute', 'zero_axes', 'unzero_axes', 'load_sample', 'unload_sample']
+    args = [None, ['x', {'x_abs':0}], [{'x_abs':0}, True], [['x', 'y', 'z', 'theta', 'f']], [['x', 'y', 'z', 'theta', 'f']], None, None]
+    
+    for f, a in zip(funcs, args):
+        if a is not None:
+            getattr(stage_base, f)(*a)
+        else:
+            getattr(stage_base, f)()

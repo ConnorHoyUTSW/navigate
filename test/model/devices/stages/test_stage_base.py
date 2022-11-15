@@ -1,4 +1,4 @@
-"""Copyright (c) 2021-2022  The University of Texas Southwestern Medical Center.
+#"""Copyright (c) 2021-2022  The University of Texas Southwestern Medical Center.
 # All rights reserved.
 
 # Redistribution and use in source and binary forms, with or without
@@ -31,57 +31,42 @@
 # """
 
 # Standard Library Imports
-import unittest
-from pathlib import Path
+import pytest
 
-# Third Party Imports
 
-# Local Imports
-from aslm.model.devices.stages.stage_base import StageBase
-from aslm.model.dummy import DummyModel
+def test_stage_base_attributes():
+    from aslm.model.devices.stages.stage_base import StageBase
+    from aslm.model.dummy import DummyModel
+    
+    model = DummyModel()
+    microscope_name = model.configuration['experiment']['MicroscopeState']['microscope_name']
+    stage_base = StageBase(microscope_name, None, model.configuration)
+    stage_config = model.configuration['configuration']['microscopes'][microscope_name]['stage']
+    
+    attrs = [
+             'x_pos', 'y_pos', 'z_pos', 
+             'f_pos', 'theta_pos', 'position_dict', 
+             'int_x_pos', 'int_y_pos', 'int_z_pos',
+             'int_f_pos', 'int_theta_pos', 'int_position_dict',
+             'int_x_pos_offset', 'int_y_pos_offset', 'int_z_pos_offset',
+             'int_f_pos_offset', 'int_theta_pos_offset', 'x_max',
+             'y_max', 'z_max', 'f_max', 'x_min', 'y_min', 'z_min',
+             'f_min', 'theta_min', 'x_rot_position', 'y_rot_position',
+             'z_rot_position', 'startfocus', 'axes'
+            ]
 
-class TestStageBase(unittest.TestCase):
-    r"""Unit Test for StageBase Class"""
-
-    def test_stage_base_attributes(self):
-        dummy_model = DummyModel()
-        microscope_name = 'Mesoscale'
-        stage_base = StageBase(microscope_name, None, dummy_model.configuration)
-
-        assert hasattr(stage_base, 'x_pos')
-        assert hasattr(stage_base, 'y_pos')
-        assert hasattr(stage_base, 'z_pos')
-        assert hasattr(stage_base, 'f_pos')
-        assert hasattr(stage_base, 'theta_pos')
-        assert hasattr(stage_base, 'position_dict')
-        assert hasattr(stage_base, 'int_x_pos')
-        assert hasattr(stage_base, 'int_y_pos')
-        assert hasattr(stage_base, 'int_z_pos')
-        assert hasattr(stage_base, 'int_f_pos')
-        assert hasattr(stage_base, 'int_theta_pos')
-        assert hasattr(stage_base, 'int_position_dict')
-        assert hasattr(stage_base, 'int_x_pos_offset')
-        assert hasattr(stage_base, 'int_y_pos_offset')
-        assert hasattr(stage_base, 'int_z_pos_offset')
-        assert hasattr(stage_base, 'int_f_pos_offset')
-        assert hasattr(stage_base, 'int_theta_pos_offset')
-        assert hasattr(stage_base, 'x_max')
-        assert hasattr(stage_base, 'y_max')
-        assert hasattr(stage_base, 'z_max')
-        assert hasattr(stage_base, 'f_max')
-        assert hasattr(stage_base, 'x_min')
-        assert hasattr(stage_base, 'y_min')
-        assert hasattr(stage_base, 'z_min')
-        assert hasattr(stage_base, 'f_min')
-        assert hasattr(stage_base, 'theta_min')
-        assert hasattr(stage_base, 'x_rot_position')
-        assert hasattr(stage_base, 'y_rot_position')
-        assert hasattr(stage_base, 'z_rot_position')
-        assert hasattr(stage_base, 'startfocus')
-        assert hasattr(stage_base, 'create_position_dict') and \
-               callable(getattr(stage_base, 'create_position_dict'))
-        assert hasattr(stage_base, 'create_internal_position_dict') and \
-               callable(getattr(stage_base, 'create_internal_position_dict'))
-
-if __name__ == '__main__':
-    unittest.main()
+    for attr in attrs:
+        assert hasattr(stage_base, attr)
+        
+            
+def test_stage_base_functions():
+    from aslm.model.devices.stages.stage_base import StageBase
+    from aslm.model.dummy import DummyModel
+    
+    model = DummyModel()
+    microscope_name = model.configuration['experiment']['MicroscopeState']['microscope_name']
+    stage_base = StageBase(microscope_name, None, model.configuration)
+    stage_config = model.configuration['configuration']['microscopes'][microscope_name]['stage']
+    
+    funcs = []
+    args = []

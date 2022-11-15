@@ -30,10 +30,6 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # """
 
-# Standard Library Imports
-import pytest
-
-
 def test_stage_base_attributes():
     from aslm.model.devices.stages.stage_base import StageBase
     from aslm.model.dummy import DummyModel
@@ -68,5 +64,11 @@ def test_stage_base_functions():
     stage_base = StageBase(microscope_name, None, model.configuration)
     stage_config = model.configuration['configuration']['microscopes'][microscope_name]['stage']
     
-    funcs = []
-    args = []
+    funcs = ['create_position_dict', 'create_internal_position_dict', 'update_position_dictionaries', 'get_abs_position', 'stop']
+    args = [None, None, None, ['x', {'x_abs': 0}], None]
+    
+    for f, a in zip(funcs, args):
+        if a is not None:
+            getattr(stage_base, f)(*a)
+        else:
+            getattr(stage_base, f)()

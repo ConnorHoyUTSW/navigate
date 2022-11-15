@@ -63,5 +63,42 @@ def test_PIStage_init():
     
     stage = PIStage(microscope_name, serial_controller, model.configuration)
 
-# def test_PIStage_attributes():
+@pytest.mark.hardware
+def test_PIStage_attributes():
+    from aslm.model.devices.stages.stage_pi import PIStage, build_PIStage_connection
+    from aslm.model.dummy import DummyModel
+    from multiprocessing.managers import ListProxy
+    import functools
+
+    model = DummyModel()
+    # Checking if there are multiple stages
+    stages = model.configuration['configuration']['hardware']['stage']
+    pistage = []
+    if type(stages) == ListProxy:
+        for s in stages:
+            if s['type'] == 'PI':
+                pistage.append(s)
+    else:
+        if stages['type'] == 'PI':
+            pistage.append(s)
+            
+    if len(pistage) == 0:
+            raise TypeError(f"Wrong stage hardware specified PI stage not found")
+
+    microscope_name = model.configuration['experiment']['MicroscopeState']['microscope_name']
+
+    
+    serial_controller = build_PIStage_connection(pistage[0]['controllername'], pistage[0]['serial_number'], pistage[0]['stages'], pistage[0]['refmode'])
+    
+    stage = PIStage(microscope_name, serial_controller, model.configuration)
+    
+    attrs = ['axes', 'pi_axes', 'pitools', 'pidevice']
+
+    for attr in attrs:
+        assert hasattr(stage, attr)
+        
+    # Robust check for proper axes encoding in PI
+    for i , axes in enumerate(stage.pi_axes):
+        assert axes == (i + 1)
+        
     

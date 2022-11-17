@@ -30,20 +30,33 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # """
 
-def test_stage_synthetic_functions():
-    from aslm.model.devices.stages.stage_synthetic import SyntheticStage
-    from aslm.model.dummy import DummyModel
+import pytest
+from aslm.model.devices.stages.stage_synthetic import SyntheticStage
+from aslm.model.dummy import DummyModel
+
+@pytest.fixture(scope='class')
+def synthetic_stage(dummy_model):
+    dummy_model = dummy_model
+    microscope_name = dummy_model.configuration['experiment']['MicroscopeState']['microscope_name']
+    synthetic_stage = SyntheticStage(microscope_name, None, dummy_model.configuration)
+    stage_config = dummy_model.configuration['configuration']['microscopes'][microscope_name]['stage']
     
-    model = DummyModel()
-    microscope_name = model.configuration['experiment']['MicroscopeState']['microscope_name']
-    stage_base = SyntheticStage(microscope_name, None, model.configuration)
-    stage_config = model.configuration['configuration']['microscopes'][microscope_name]['stage']
+    return synthetic_stage
+
+class TestSyntheticStage:
     
-    funcs = ['report_position', 'move_axis_absolute', 'move_absolute', 'zero_axes', 'unzero_axes', 'load_sample', 'unload_sample']
-    args = [None, ['x', {'x_abs':0}], [{'x_abs':0}, True], [['x', 'y', 'z', 'theta', 'f']], [['x', 'y', 'z', 'theta', 'f']], None, None]
-    
-    for f, a in zip(funcs, args):
-        if a is not None:
-            getattr(stage_base, f)(*a)
-        else:
-            getattr(stage_base, f)()
+    @pytest.fixture(autouse=True)
+    def _setup_stage(self, synthetic_stage):
+        self.synthetic_stage = synthetic_stage
+
+    def test_stage_synthetic_functions(self):
+        
+        # Listing functions and testing if callable
+        funcs = ['report_position', 'move_axis_absolute', 'move_absolute', 'zero_axes', 'unzero_axes', 'load_sample', 'unload_sample']
+        args = [None, ['x', {'x_abs':0}], [{'x_abs':0}, True], [['x', 'y', 'z', 'theta', 'f']], [['x', 'y', 'z', 'theta', 'f']], None, None]
+        
+        for f, a in zip(funcs, args):
+            if a is not None:
+                getattr(self.synthetic_stage, f)(*a)
+            else:
+                getattr(self.synthetic_stage, f)()

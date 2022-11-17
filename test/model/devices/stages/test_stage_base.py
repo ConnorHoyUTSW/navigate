@@ -30,45 +30,52 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # """
 
-def test_stage_base_attributes():
-    from aslm.model.devices.stages.stage_base import StageBase
-    from aslm.model.dummy import DummyModel
-    
-    model = DummyModel()
-    microscope_name = model.configuration['experiment']['MicroscopeState']['microscope_name']
-    stage_base = StageBase(microscope_name, None, model.configuration)
-    stage_config = model.configuration['configuration']['microscopes'][microscope_name]['stage']
-    
-    attrs = [
-             'x_pos', 'y_pos', 'z_pos', 
-             'f_pos', 'theta_pos', 'position_dict', 
-             'int_x_pos', 'int_y_pos', 'int_z_pos',
-             'int_f_pos', 'int_theta_pos', 'int_position_dict',
-             'int_x_pos_offset', 'int_y_pos_offset', 'int_z_pos_offset',
-             'int_f_pos_offset', 'int_theta_pos_offset', 'x_max',
-             'y_max', 'z_max', 'f_max', 'x_min', 'y_min', 'z_min',
-             'f_min', 'theta_min', 'x_rot_position', 'y_rot_position',
-             'z_rot_position', 'startfocus', 'axes'
-            ]
+import pytest
+from aslm.model.devices.stages.stage_base import StageBase
+from aslm.model.dummy import DummyModel
 
-    for attr in attrs:
-        assert hasattr(stage_base, attr)
+@pytest.fixture(scope='class')
+def stagebase(dummy_model):
+    dummy_model = dummy_model
+    microscope_name = dummy_model.configuration['experiment']['MicroscopeState']['microscope_name']
+    stage_base = StageBase(microscope_name, None, dummy_model.configuration)
+    stage_config = dummy_model.configuration['configuration']['microscopes'][microscope_name]['stage']
+    
+    return stage_base
+
+class TestStageBase:
+    
+    @pytest.fixture(autouse=True)
+    def _setup_stage(self, stagebase):
+        self.stage_base = stagebase
+
+    def test_stage_base_attributes(self):
+
+        # List of attributes that are being checked for existence
+        attrs = [
+                    'x_pos', 'y_pos', 'z_pos', 
+                    'f_pos', 'theta_pos', 'position_dict', 
+                    'int_x_pos', 'int_y_pos', 'int_z_pos',
+                    'int_f_pos', 'int_theta_pos', 'int_position_dict',
+                    'int_x_pos_offset', 'int_y_pos_offset', 'int_z_pos_offset',
+                    'int_f_pos_offset', 'int_theta_pos_offset', 'x_max',
+                    'y_max', 'z_max', 'f_max', 'x_min', 'y_min', 'z_min',
+                    'f_min', 'theta_min', 'x_rot_position', 'y_rot_position',
+                    'z_rot_position', 'startfocus', 'axes'
+                ]
+
+        for attr in attrs:
+            assert hasattr(self.stage_base, attr)
         
             
-def test_stage_base_functions():
-    from aslm.model.devices.stages.stage_base import StageBase
-    from aslm.model.dummy import DummyModel
-    
-    model = DummyModel()
-    microscope_name = model.configuration['experiment']['MicroscopeState']['microscope_name']
-    stage_base = StageBase(microscope_name, None, model.configuration)
-    stage_config = model.configuration['configuration']['microscopes'][microscope_name]['stage']
-    
-    funcs = ['create_position_dict', 'create_internal_position_dict', 'update_position_dictionaries', 'get_abs_position', 'stop']
-    args = [None, None, None, ['x', {'x_abs': 0}], None]
-    
-    for f, a in zip(funcs, args):
-        if a is not None:
-            getattr(stage_base, f)(*a)
-        else:
-            getattr(stage_base, f)()
+    def test_stage_base_functions(self):
+
+        # Listing off functions within Stage Base to see if they exist and are callable
+        funcs = ['create_position_dict', 'create_internal_position_dict', 'update_position_dictionaries', 'get_abs_position', 'stop']
+        args = [None, None, None, ['x', {'x_abs': 0}], None]
+
+        for f, a in zip(funcs, args):
+            if a is not None:
+                getattr(self.stage_base, f)(*a)
+            else:
+                getattr(self.stage_base, f)()

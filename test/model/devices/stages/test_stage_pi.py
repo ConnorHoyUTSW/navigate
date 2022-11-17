@@ -31,17 +31,15 @@
 # """
 
 import pytest
+from aslm.model.devices.stages.stage_pi import PIStage, build_PIStage_connection
+from multiprocessing.managers import ListProxy
 
-@pytest.mark.hardware
-def test_PIStage_init():
-    from aslm.model.devices.stages.stage_pi import PIStage, build_PIStage_connection
-    from aslm.model.dummy import DummyModel
-    from multiprocessing.managers import ListProxy
-
-    model = DummyModel()
-    # Checking if there are multiple stages
-    stages = model.configuration['configuration']['hardware']['stage']
+@pytest.fixture(scope='class')
+def pistage(dummy_model):
+    dummy_model = dummy_model
+    stages = dummy_model.configuration['configuration']['hardware']['stage']
     pistage = []
+    # Checking if multiple stages
     if type(stages) == ListProxy:
         for s in stages:
             if s['type'] == 'PI':
@@ -53,52 +51,56 @@ def test_PIStage_init():
     if len(pistage) == 0:
             raise TypeError(f"Wrong stage hardware specified PI stage not found")
         
-    
+    microscope_name = dummy_model.configuration['experiment']['MicroscopeState']['microscope_name']
 
-        
-    microscope_name = model.configuration['experiment']['MicroscopeState']['microscope_name']
-
-    
     serial_controller = build_PIStage_connection(pistage[0]['controllername'], pistage[0]['serial_number'], pistage[0]['stages'], pistage[0]['refmode'])
     
-    stage = PIStage(microscope_name, serial_controller, model.configuration)
+    stage = PIStage(microscope_name, serial_controller, dummy_model.configuration)
+    
+    return stage
 
-@pytest.mark.hardware
-def test_PIStage_attributes():
-    from aslm.model.devices.stages.stage_pi import PIStage, build_PIStage_connection
-    from aslm.model.dummy import DummyModel
-    from multiprocessing.managers import ListProxy
-    import functools
+class TestPIStage:
+    
+    @pytest.fixture(autouse=True)
+    def _setup_stage(self, pistage):
+        self.pistage = pistage
 
-    model = DummyModel()
-    # Checking if there are multiple stages
-    stages = model.configuration['configuration']['hardware']['stage']
-    pistage = []
-    if type(stages) == ListProxy:
-        for s in stages:
-            if s['type'] == 'PI':
-                pistage.append(s)
-    else:
-        if stages['type'] == 'PI':
-            pistage.append(s)
+    @pytest.mark.hardware
+    def test_PIStage_init(self):
+        
+        # Initializing stage using fixture essentially testing that fixture works
+        pistage = self.pistage
+        # assert pistage != None TODO should we test it exists or will it catch already
+        
+    @pytest.mark.hardware
+    def test_PIStage_attributes(self):
+        
+        # Listing off attributes to check existence
+        attrs = ['axes', 'pi_axes', 'pitools', 'pidevice']
+
+        for attr in attrs:
+            assert hasattr(self.pistage, attr)
             
-    if len(pistage) == 0:
-            raise TypeError(f"Wrong stage hardware specified PI stage not found")
-
-    microscope_name = model.configuration['experiment']['MicroscopeState']['microscope_name']
-
-    
-    serial_controller = build_PIStage_connection(pistage[0]['controllername'], pistage[0]['serial_number'], pistage[0]['stages'], pistage[0]['refmode'])
-    
-    stage = PIStage(microscope_name, serial_controller, model.configuration)
-    
-    attrs = ['axes', 'pi_axes', 'pitools', 'pidevice']
-
-    for attr in attrs:
-        assert hasattr(stage, attr)
+        # Robust check for proper axes encoding in PI
+        for i , axes in enumerate(self.pistage.pi_axes):
+            assert axes == (i + 1)
         
-    # Robust check for proper axes encoding in PI
-    for i , axes in enumerate(stage.pi_axes):
-        assert axes == (i + 1)
+    @pytest.mark.hardware
+    def test_PIStage_report_position(self):
         
+        # Setup data
+        test_dict = self.pistage.position_dict
+        
+        # Report data
+        report_dict = self.pistage.report_position()
+        
+        assert report_dict == test_dict
+        
+        
+    @pytest.mark.hardware
+    def test_PIStage_del(self):
+        
+        # Initializing stage then deleting
+        pistage = self.pistage
+        del pistage
     

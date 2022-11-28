@@ -95,7 +95,106 @@ class TestPIStage:
         report_dict = self.pistage.report_position()
         
         assert report_dict == test_dict
-        
+
+
+    @pytest.mark.hardware
+    def test_PIStage_move(self):
+        '''
+        Combines move absolute and move axis absolute in one test
+        '''
+
+        # Get current position of stage and grab step sizes from experiment file
+        steps = self.pistage.dummy_model.configuration['experiment']['StageParameters']
+        step_size = { key:value for key, value in steps.items() if "step" in key }
+        step_size['x_step'] = step_size['xy_step']
+        step_size['y_step'] = step_size['xy_step']
+
+        positions = self.pistage.report_position()
+        origin = { key.split("_")[0] + "_abs" : value for key, value in positions.items() }
+        move_dict = { key.split("_")[0] + "_abs" : value + step_size[key+"_step"] for key, value in positions.items() }
+
+        # Call move absolute from PIStage, which in turn will call move_axis_absolute
+        self.pistage.move_absolute(move_dict, True)
+        new_pos = self.pistage.report_position()
+        new_pos = { key.split("_")[0] + "_abs" : value for key, value in new_pos.items() }
+        assert new_pos == move_dict
+
+        # Move back to starting position
+        self.pistage.move_absolute(origin, True)
+        final = self.pistage.report_position()
+        final = { key.split("_")[0] + "_abs" : value for key, value in final.items() }
+        assert origin == final
+
+
+    @pytest.mark.hardware
+    def test_PIStage_stop(self):
+        '''
+        Then for the stop stage command, you could try something like the following:
+            Get current stage position
+            Move stage 1 mm in each dimension
+            Immediately halt operation (wait until complete operation may have to be false)
+            Confirm that the stage did not move to the target, and that it is not moving still.
+        '''
+
+        # Setup step sizes, 2 steps for everything but theta is 1 mm
+        steps = self.pistage.dummy_model.configuration['experiment']['StageParameters']
+        step_size = { key: (value * 2) for key, value in steps.items() if "step" in key }
+        step_size['x_step'] = step_size['xy_step']
+        step_size['y_step'] = step_size['xy_step']
+        step_size['theta_step'] = 10 # 10 Degrees step size
+
+        # Get current position of stage
+        positions = self.pistage.report_position()
+        origin = { key.split("_")[0] + "_abs" : value for key, value in positions.items() }
+
+        # Move stage 1 mm in each direction
+        move_dict = { key.split("_")[0] + "_abs" : value + step_size[ key + "_step" ] for key, value in positions.items() }
+        self.pistage.move_absolute(move_dict, False)
+
+        # Immediately halt operation
+        self.pistage.stop()
+
+        # Check stage did not move to target
+        stop_pos = self.pistage.report_position()
+        stop_pos = { key.split("_")[0] + "_abs" : value for key, value in stop_pos.items() }
+        assert stop_pos != move_dict
+
+        # Move back to starting position
+        self.pistage.move_absolute(origin, True)
+        final = self.pistage.report_position()
+        final = { key.split("_")[0] + "_abs" : value for key, value in final.items() }
+        assert origin == final
+
+
+
+    @pytest.mark.hardware
+    def test_PIStage_load(self):
+        '''
+        Combines load and unload sample
+        '''
+
+        # Origin
+        positions = self.pistage.report_position()
+        origin = { key.split("_")[0] + "_abs" : value for key, value in positions.items() }
+
+        # Load sample
+        self.pistage.load_sample()
+        post_load_pos = self.pistage.report_position()
+        post_load_pos = { key.split("_")[0] + "_abs" : value for key, value in post_load_pos.items() }
+        assert post_load_pos['y_abs'] == self.pistage.y_load_position / 1000
+
+        # Unload sample
+        self.pistage.unload_sample()
+        post_unload_pos = self.pistage.report_position()
+        post_unload_pos = { key.split("_")[0] + "_abs" : value for key, value in post_unload_pos.items() }
+        assert post_unload_pos['y_abs'] == self.pistage.y_unload_position / 1000
+
+        # Move back to start
+        self.pistage.move_absolute(origin, True)
+        final = self.pistage.report_position()
+        final = { key.split("_")[0] + "_abs" : value for key, value in final.items() }
+        assert origin == final
+ 
         
     @pytest.mark.hardware
     def test_PIStage_del(self):

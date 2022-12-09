@@ -132,6 +132,11 @@ def load_camera_connection(configuration,
     elif cam_type.lower() == 'syntheticcamera' or 'synthetic':
         from aslm.model.devices.camera.camera_synthetic import SyntheticCameraController
         return SyntheticCameraController()
+    elif cam_type.lower() == 'Photometrics':
+        #return camera object in the auto_redial function.
+        import aslm.model.devices.APIs.photometrics.photometricsAPI as pyvcam
+        PhotometricsController =
+        return auto_redial(nPhotometricsController.pyvcam.Camera, (camera_id,), exception=Exception)
     else:
         device_not_found('camera', camera_id, cam_type)
 

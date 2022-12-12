@@ -70,13 +70,21 @@ class PIStage(StageBase):
         super().__init__(microscope_name, device_connection, configuration, device_id)
 
         # Mapping from self.axes to corresponding PI axis labelling
-        axes_mapping = {
-            'x': 1,
-            'y': 2,
-            'z': 3,
-            'f': 5,
-            'theta': 4
-        }
+        try:
+            map = configuration['microscopes'][microscope_name]['stage']['hardware']['axes_mapping']
+            axes = configuration['microscopes'][microscope_name]['stage']['hardware']['axes']
+            axes_mapping = {}
+            for k, v in zip(axes, map):
+                axes_mapping[k] = v
+        except KeyError:
+            axes_mapping = {
+                'x': 1,
+                'y': 2,
+                'z': 3,
+                'f': 5,
+                'theta': 4
+            }
+            
         self.pi_axes = list(map(lambda a: axes_mapping[a], self.axes))
 
         self.pitools = device_connection['pitools']

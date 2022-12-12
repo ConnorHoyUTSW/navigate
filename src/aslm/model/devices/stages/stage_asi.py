@@ -75,11 +75,20 @@ class ASIStage(StageBase):
         
 
         # Mapping from self.axes to corresponding ASI axis labelling
-        axes_mapping = {
-            'x': 'Z', # little x is software sending message as x axis, while big Z is what the stage actually moves
-            'y': 'Y',
-            'z': 'X'
-        }
+        # Mapping from self.axes to corresponding PI axis labelling
+        try:
+            map = configuration['microscopes'][microscope_name]['stage']['hardware']['axes_mapping']
+            axes = configuration['microscopes'][microscope_name]['stage']['hardware']['axes']
+            axes_mapping = {}
+            for k, v in zip(axes, map):
+                axes_mapping[k] = v
+        except KeyError:
+            axes_mapping = {
+                'x': 'X',
+                'y': 'Y',
+                'z': 'Z'
+            }
+
         self.asi_axes = list(map(lambda a: axes_mapping[a], self.axes))
         self.tiger_controller = device_connection
 

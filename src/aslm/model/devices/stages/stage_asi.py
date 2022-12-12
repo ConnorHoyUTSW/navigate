@@ -75,12 +75,20 @@ class ASIStage(StageBase):
         
 
         # Mapping from self.axes to corresponding ASI axis labelling
-        # Mapping from self.axes to corresponding PI axis labelling
         try:
-            map = configuration['microscopes'][microscope_name]['stage']['hardware']['axes_mapping']
-            axes = configuration['microscopes'][microscope_name]['stage']['hardware']['axes']
+            from multiprocessing.managers import ListProxy
+            stage_list = configuration['microscopes'][microscope_name]['stage']['hardware']
+            if stage_list == ListProxy:
+                for idx, stage in enumerate(stage_list):
+                    if stage['type'] == 'ASI':
+                        device_id = idx
+                mapping = configuration['microscopes'][microscope_name]['stage']['hardware'][device_id]['axes_mapping']
+                axes = configuration['microscopes'][microscope_name]['stage']['hardware'][device_id]['axes']
+            else:
+                mapping = configuration['microscopes'][microscope_name]['stage']['hardware']['axes_mapping']
+                axes = configuration['microscopes'][microscope_name]['stage']['hardware']['axes']
             axes_mapping = {}
-            for k, v in zip(axes, map):
+            for k, v in zip(axes, mapping):
                 axes_mapping[k] = v
         except KeyError:
             axes_mapping = {

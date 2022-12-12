@@ -76,7 +76,7 @@ class ASIStage(StageBase):
 
         # Mapping from self.axes to corresponding ASI axis labelling
         axes_mapping = {
-            'x': 'Z',
+            'x': 'Z', # little x is software sending message as x axis, while big Z is what the stage actually moves
             'y': 'Y',
             'z': 'X'
         }

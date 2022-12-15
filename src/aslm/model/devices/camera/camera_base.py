@@ -79,6 +79,8 @@ class CameraBase:
         self.camera_exposure_time = self.camera_parameters['exposure_time'] / 1000
         self.camera_display_acquisition_subsampling = self.camera_parameters['display_acquisition_subsampling']
 
+        #acquiring information
+        self.is_acquiring = False
 
     def set_readout_direction(self, mode):
         r"""Set HamamatsuOrca readout direction.
@@ -90,24 +92,4 @@ class CameraBase:
         """
         logger.debug(f'set camera readout direction to: {mode}')
 
-    def calculate_light_sheet_exposure_time(self, full_chip_exposure_time, shutter_width):
-        r"""Convert normal mode exposure time to light-sheet mode exposure time.
-        Calculate the parameters for an ASLM acquisition
 
-        Parameters
-        ----------
-        full_chip_exposure_time : float
-            Normal mode exposure time.
-        shutter_width : int
-
-        Returns
-        -------
-        exposure_time : float
-            Light-sheet mode exposure time.
-        camera_line_interval : float
-            HamamatsuOrca line interval duration.
-        """
-
-        self.camera_line_interval = (full_chip_exposure_time / 1000)/(shutter_width + self.y_pixels + 10)
-        exposure_time = self.camera_line_interval*shutter_width*1000
-        return exposure_time, self.camera_line_interval

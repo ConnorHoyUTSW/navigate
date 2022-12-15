@@ -119,24 +119,35 @@ def load_camera_connection(configuration,
     Camera controller: class
         Camera api class.
     """
-
     if is_synthetic:
         cam_type = 'SyntheticCamera'
     else:
         cam_type = configuration['configuration']['hardware']['camera'][camera_id]['type']
 
+    print(f"Loading camera {cam_type}")
+
     if cam_type == 'HamamatsuOrca':
         # Locally Import Hamamatsu API and Initialize Camera Controller
         HamamatsuController = importlib.import_module('aslm.model.devices.APIs.hamamatsu.HamamatsuAPI')
         return auto_redial(HamamatsuController.DCAM, (camera_id,), exception=Exception)
-    elif cam_type.lower() == 'syntheticcamera' or 'synthetic':
+    elif cam_type.lower() == 'syntheticcamera' or cam_type.lower() == 'synthetic':
         from aslm.model.devices.camera.camera_synthetic import SyntheticCameraController
         return SyntheticCameraController()
-    elif cam_type.lower() == 'Photometrics':
+    elif cam_type == 'Photometrics':
+        def import_photometrics(camera_connection):
+            from pyvcam import pvc
+            from pyvcam.camera import Camera
+            pvc.init_pvcam()
+            print("pvcam initialized")
+            camera_names = Camera.get_available_camera_names()
+            print('Available cameras: ' + str(camera_names))
+            camera_toopen= Camera.select_camera(camera_connection)
+            camera_toopen.open()
+            return camera_toopen
+        camera_connection = configuration['configuration']['hardware']['camera'][camera_id]['camera_connection']
+        print(camera_connection)
         #return camera object in the auto_redial function.
-        import aslm.model.devices.APIs.photometrics.photometricsAPI as pyvcam
-        PhotometricsController =
-        return auto_redial(nPhotometricsController.pyvcam.Camera, (camera_id,), exception=Exception)
+        return auto_redial(import_photometrics, (camera_connection,), exception=Exception)
     else:
         device_not_found('camera', camera_id, cam_type)
 
@@ -174,9 +185,13 @@ def start_camera(microscope_name,
     if cam_type == 'HamamatsuOrca':
         from aslm.model.devices.camera.camera_hamamatsu import HamamatsuOrca
         return HamamatsuOrca(microscope_name, device_connection, configuration)
-    elif cam_type.lower() == 'syntheticcamera' or 'synthetic':
+    elif cam_type.lower() == 'syntheticcamera' or cam_type.lower() == 'synthetic':
         from aslm.model.devices.camera.camera_synthetic import SyntheticCamera
         return SyntheticCamera(microscope_name, device_connection, configuration)
+    elif cam_type == 'Photometrics':
+        from aslm.model.devices.camera.camera_photometrics import PhotometricsKinetix
+        #return camera class
+        return PhotometricsKinetix(microscope_name, device_connection, configuration)
     else:
         device_not_found(microscope_name, 'camera', cam_type)
 

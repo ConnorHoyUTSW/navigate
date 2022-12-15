@@ -170,7 +170,7 @@ class SyntheticCamera(CameraBase):
         self.num_of_frame = number_of_frames
         self.current_frame_idx = 0
         self.pre_frame_idx = 0
-        self.camera_controller.is_acquiring = True
+        self.is_acquiring = True
         self.is_acquiring = True
 
     def close_image_series(self):
@@ -180,7 +180,7 @@ class SyntheticCamera(CameraBase):
         """
         self.pre_frame_idx = 0
         self.current_frame_idx = 0
-        self.camera_controller.is_acquiring = False
+        self.is_acquiring = False
         self.is_acquiring = False
 
     def load_images(self, filenames=None):

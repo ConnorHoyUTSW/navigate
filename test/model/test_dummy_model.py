@@ -194,7 +194,7 @@ class TestDummyModel(unittest.TestCase):
     #     assert synthetic_camera.data_buffer is None
     #     assert synthetic_camera.current_frame_idx == 0
     #     assert synthetic_camera.pre_frame_idx == 0
-    #     assert synthetic_camera.camera_controller.is_acquiring is True
+    #     assert synthetic_camera.is_acquiring is True
     #
     # def test_synthetic_camera_close_image_series(self):
     #     self.dummy_model = get_dummy_model()
@@ -206,7 +206,7 @@ class TestDummyModel(unittest.TestCase):
     #     synthetic_camera.close_image_series()
     #     assert synthetic_camera.pre_frame_idx == 0
     #     assert synthetic_camera.current_frame_idx == 0
-    #     assert synthetic_camera.camera_controller.is_acquiring is False
+    #     assert synthetic_camera.is_acquiring is False
     #
     # def test_synthetic_camera_generate_new_frame(self):
     #     self.dummy_model = get_dummy_model()

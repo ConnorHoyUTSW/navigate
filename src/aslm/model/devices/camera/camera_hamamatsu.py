@@ -103,6 +103,31 @@ class HamamatsuOrca(CameraBase):
         """
         return self.camera_controller._serial_number
 
+    def calculate_light_sheet_exposure_time(self, full_chip_exposure_time, shutter_width):
+        r"""Convert normal mode exposure time to light-sheet mode exposure time.
+        Calculate the parameters for an ASLM acquisition
+
+        Parameters
+        ----------
+        full_chip_exposure_time : float
+            Normal mode exposure time.
+        shutter_width : int
+
+        Returns
+        -------
+        exposure_time : float
+            Light-sheet mode exposure time.
+        camera_line_interval : float
+            HamamatsuOrca line interval duration.
+        """
+
+        self.camera_line_interval = (full_chip_exposure_time / 1000)/(shutter_width + self.y_pixels + 10)
+        exposure_time = self.camera_line_interval*shutter_width*1000
+
+        self.set_exposure_time(exposure_time)
+        self.set_line_interval(self.camera_line_interval)
+        return exposure_time, self.camera_line_interval
+
     def report_settings(self):
         r"""Print Camera Settings."""
         params = ["defect_correct_mode",
@@ -131,7 +156,7 @@ class HamamatsuOrca(CameraBase):
         Parameters
         ----------
         mode : str
-            'Normal' or 'Light-Sheet'
+            'Normal (static)' or 'Light-Sheet (ASLM)'
         """
         modes_dict = {'Normal': 1, 'Light-Sheet': 12}
         if mode in modes_dict:
@@ -314,7 +339,7 @@ class HamamatsuOrca(CameraBase):
         return self.x_pixels == roi_width and self.y_pixels == roi_height
 
     def initialize_image_series(self, data_buffer=None, number_of_frames=100):
-        r"""Initialize HamamatsuOrca image series.
+        r"""Initialize HamamatsuOrca image series. This is for starting stacks etc.
 
         Parameters
         ----------

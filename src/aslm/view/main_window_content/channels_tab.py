@@ -341,8 +341,8 @@ class ChannelCreator(ttk.Labelframe):
             self.defocus_spins.append(
                 ValidatedSpinbox(
                     self.frame_columns[6],
-                    from_=-500.0,
-                    to=500.0,
+                    from_=-5000.0,
+                    to=5000.0,
                     textvariable=self.defocus_variables[num],
                     increment=0.1,
                     width=4,

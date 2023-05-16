@@ -169,8 +169,8 @@ class ASIStage(StageBase):
     def __init__(self, microscope_name, device_connection, configuration, device_id=0):
         super().__init__(microscope_name, device_connection, configuration, device_id)
 
-        # Mapping from self.axes to corresponding ASI axis labelling
-        self.axes_mapping = {"x": "Z", "y": "Y", "z": "X"}
+        # Default mapping from self.axes to corresponding ASI axis labelling
+        # self.axes_mapping = {"x": "Z", "y": "Y", "z": "X"}
 
         # Focus and Theta axes are not supported for ASI Stage
         if "theta" in self.axes:
@@ -178,12 +178,21 @@ class ASIStage(StageBase):
         if "f" in self.axes:
             self.axes.remove("f")
 
-        self.asi_axes = list(map(lambda a: self.axes_mapping[a], self.axes))
+        # Device Connection
+        if device_connection is None:
+            logger.error("The ASI stage is unavailable!")
+            raise UserWarning("The ASI stage is unavailable!")
+
         self.tiger_controller = device_connection
-        # set default speed
-        self.default_speed =5.745760 #7.68 * 0.67
-        default_speeds = [(axis,self.default_speed) for axis in self.asi_axes]
-        if self.tiger_controller != None:
+
+        # Non-default axes_mapping
+        # self.asi_axes = list(map(lambda a: self.axes_mapping[a], self.axes))
+        self.asi_axes = {x: y for x, y in zip(self.axes, ["x", "y", "z"])}
+
+        # Default Operating Parameters
+        self.default_speed = 5.745760 # 7.68 * 0.67
+        default_speeds = [(axis, self.default_speed) for axis in self.asi_axes]
+        if self.tiger_controller is None:
             try:
                 self.tiger_controller.set_speed(**dict(default_speeds))
             except TigerException:
@@ -192,7 +201,7 @@ class ASIStage(StageBase):
     def __del__(self):
         """Delete the ASI Stage connection."""
         try:
-            if self.tiger_controller != None:
+            if self.tiger_controller is None:
                 self.tiger_controller.disconnect_from_serial()
                 logger.debug("ASI stage connection closed")
         except (AttributeError, BaseException) as e:

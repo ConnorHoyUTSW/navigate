@@ -295,7 +295,7 @@ def load_stages(configuration, is_synthetic=False):
                     build_ASI_Stage_connection,
                     (
                         stage_config["port"],
-                        stage_config["baudrate"],
+                        stage_config.get("baudrate", 115200)
                     ),
                     exception=TigerException,
                 )

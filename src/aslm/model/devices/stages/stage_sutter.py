@@ -103,7 +103,7 @@ class SutterStage(StageBase):
     def __init__(self, microscope_name, device_connection, configuration, device_id):
         super().__init__(microscope_name, device_connection, configuration, device_id)
 
-        # Default mapping from self.axes to corresponding ASI axis labelling
+        # Default mapping from self.axes to corresponding Sutter axis labelling
         axes_mapping = {"x": "X", "y": "Y", "z": "Z"}
 
         # Focus and Theta axes are not supported for Sutter Stage. Values are pulled

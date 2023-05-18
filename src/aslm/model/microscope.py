@@ -130,32 +130,13 @@ class Microscope:
         # load/start all the devices listed in device_ref_dict
         for device_name in device_ref_dict.keys():
             device_connection = None
-            device_config_list = []
-            device_name_list = []
-
-            if (
-                type(configuration["configuration"]["microscopes"][name][device_name])
-                == ListProxy
-            ):
-                i = 0
-                for d in configuration["configuration"]["microscopes"][name][
-                    device_name
-                ]:
-                    device_config_list.append(d)
-                    if device_name in device_name_dict:
-                        device_name_list.append(
-                            build_ref_name("_", d[device_name_dict[device_name]])
-                        )
-                    else:
-                        device_name_list.append(build_ref_name("_", device_name, i))
-                    i += 1
-
-                is_list = True
-            else:
-                device_config_list.append(
-                    configuration["configuration"]["microscopes"][name][device_name]
-                )
-                is_list = False
+            (
+                device_config_list,
+                device_name_list,
+                is_list,
+            ) = self.assemble_device_config_list(
+                device_name=device_name, device_name_dict=device_name_dict
+            )
 
             for i, device in enumerate(device_config_list):
                 device_ref_name = None
@@ -603,3 +584,59 @@ class Microscope:
             temp_pos = self.stages[axis].report_position()
             ret_pos_dict[pos_axis] = temp_pos[pos_axis]
         return ret_pos_dict
+
+    def assemble_device_config_list(self, device_name, device_name_dict):
+        """Assemble device configuration list.
+
+        Parameters
+        ----------
+        device_name : str
+            Name of device.
+        device_name_dict : dict
+            Dictionary of device names.
+
+        Returns
+        -------
+        device_config_list : list
+            List of device configurations.
+        device_name_list : list
+            List of device names.
+        is_list : bool
+            True if device is a list.
+        """
+
+        # Initialize lists
+        device_config_list = []
+        device_name_list = []
+        if (
+            type(
+                self.configuration["configuration"]["microscopes"][
+                    self.microscope_name
+                ][device_name]
+            )
+            == ListProxy
+        ):
+            i = 0
+            for d in self.configuration["configuration"]["microscopes"][
+                self.microscope_name
+            ][device_name]:
+
+                device_config_list.append(d)
+                if device_name in device_name_dict:
+                    device_name_list.append(
+                        build_ref_name("_", d[device_name_dict[device_name]])
+                    )
+                else:
+                    device_name_list.append(build_ref_name("_", device_name, i))
+                i += 1
+
+            is_list = True
+        else:
+            device_config_list.append(
+                self.configuration["configuration"]["microscopes"][
+                    self.microscope_name
+                ][device_name]
+            )
+            is_list = False
+
+        return device_config_list, device_name_list, is_list

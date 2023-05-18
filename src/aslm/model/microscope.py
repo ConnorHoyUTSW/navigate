@@ -73,16 +73,6 @@ class Microscope:
     get_readout_time()
         Get readout time from camera.
 
-    Examples
-    --------
-    >>> microscope = Microscope(configuration,
-    >>> data_buffer, daq, microscope_name, number_of_frames)
-    >>> microscope.update_data_buffer(img_width, img_height,
-    >>> data_buffer, number_of_frames)
-    >>> microscope.move_stage_offset(former_microscope=None)
-    >>> microscope.end_acquisition()
-    >>> microscope.get_readout_time()
-
     """
 
     def __init__(
@@ -96,9 +86,9 @@ class Microscope:
         self.stages = {}
         self.lasers = {}
         self.galvo = {}
-        self.daq = devices_dict.get("daq", None)
         self.info = {}
-
+        self.daq = devices_dict.get("daq", None)
+        self.tiger_controller = devices_dict.get("filter_wheel", None)
         self.current_channel = None
         self.channels = None
         self.available_channels = None
@@ -157,6 +147,8 @@ class Microscope:
                     and device_ref_name in devices_dict[device_name]
                 ):
                     device_connection = devices_dict[device_name][device_ref_name]
+
+                # Shared Devices
                 elif device_ref_name.startswith("NI") and (
                     device_name == "galvo" or device_name == "remote_focus_device"
                 ):
@@ -204,13 +196,16 @@ class Microscope:
         ]["stage"]["hardware"]
         if type(stage_devices) != ListProxy:
             stage_devices = [stage_devices]
+
         for i, device_config in enumerate(stage_devices):
             device_ref_name = build_ref_name(
                 "_", device_config["type"], device_config["serial_number"]
             )
+
             if device_ref_name not in devices_dict["stages"]:
-                logger.debug("stage has not been loaded!")
-                raise Exception("no stage device!")
+                logger.debug("Stage has not been loaded!")
+                raise Exception("No stage device!")
+
             if device_ref_name.startswith("GalvoNIStage"):
                 # TODO: Remove this. We should not have this hardcoded.
                 devices_dict["stages"][device_ref_name] = self.daq

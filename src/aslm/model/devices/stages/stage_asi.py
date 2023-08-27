@@ -205,6 +205,8 @@ class ASIStage(StageBase):
             )
             # If this is changing, the stage must be power cycled for these changes to take effect.
             for ax in self.asi_axes.keys():
+                # TODO: Set as default values pulled from stage rather than manually assign.
+                #       Alternatively, pull from configuration.yaml.
                 if self.asi_axes[ax] == "theta":
                     self.tiger_controller.set_finishing_accuracy(ax, 0.003013)
                     self.tiger_controller.set_error(ax, 0.1)
@@ -214,6 +216,8 @@ class ASIStage(StageBase):
 
             # Set backlash to 0 (less accurate)
             for ax in self.asi_axes.keys():
+                # TODO: Set as default values pulled from stage rather than manually assign.
+                #       Alternatively, pull from configuration.yaml.
                 if self.asi_axes[ax] == "theta":
                     self.tiger_controller.set_backlash(ax, 0.1)
                 self.tiger_controller.set_backlash(ax, 0.0)

@@ -36,6 +36,7 @@ import time
 
 # Third Party Imports
 from pipython import GCSDevice, pitools, GCSError
+from tkinter import messagebox
 
 # Local Imports
 from aslm.model.devices.stages.stage_base import StageBase
@@ -80,6 +81,20 @@ def build_PIStage_connection(controller_name, serial_number, stages, reference_m
             block_flag = False
         else:
             time.sleep(0.1)
+
+    # Are we on target? What is our reference mode state? Is the Servo on?
+    on_target = pi_device.qFRF()
+    servo_on = pi_device.qSVO()
+    all_on_target = all(value for value in on_target.values())
+    all_servo_on = all(value for value in servo_on.values())
+    if all_servo_on and all_on_target:
+        pass
+    else:
+        messagebox.showwarning(
+            title="ASLM",
+            message="Physik Instrumente Stages Unreferenced or Not On Target. \n"
+            "Proceed With Caution",
+        )
 
     stage_connection = {"pi_tools": pi_tools, "pi_device": pi_device}
     return stage_connection

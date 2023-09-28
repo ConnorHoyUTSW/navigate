@@ -59,8 +59,8 @@ class CVACONPRO:
 
         # Acquisition Parameters
         self.stack_cycling_mode = None
-        self.channels = 1
-        self.current_channel_in_list = None
+        # self.channels = 1
+        # self.current_channel_in_list = None
         self.readout_time = None
         self.waveform_dict = None
 
@@ -129,7 +129,7 @@ class CVACONPRO:
         self.stack_cycling_mode = self.microscope_state["stack_cycling_mode"]
         self.channels = self.microscope_state["selected_channels"]
         self.current_channel_in_list = 0
-        self.model.active_microscope.current_channel = 0
+        # self.model.active_microscope.current_channel = 0
         self.asi_stage = self.model.active_microscope.stages[self.axis]
 
         # Configure Flags and Counters
@@ -207,15 +207,22 @@ class CVACONPRO:
 
         # Calculate the readout time for the camera and microscope sweep time.
         self.readout_time = self.model.active_microscope.get_readout_time()
+        print(f"self.readout_time = {self.readout_time}")
         _, sweep_times = self.model.active_microscope.calculate_exposure_sweep_times(
             self.readout_time)
+        print(f"sweep_times = {sweep_times}")
         channel_name = next(iter(sweep_times))
+        # print(f"channel_name = {channel_name}")
         channel_name = str(channel_name)
+        print(f"channel_name = {channel_name}")
         channel_num = re.findall(r'[\d.]+', channel_name)
         channel_num = int(channel_num[0])
+        print(f"channel_num = {channel_num}")
         self.model.active_microscope.current_channel = channel_num
+        print(f"current channel = {self.model.active_microscope.current_channel}")
         self.current_sweep_time = sweep_times[
             f"channel_{self.model.active_microscope.current_channel}"]
+        print(f"current sweep time = {self.current_sweep_time}")
         # current_sweep_time = self.current_sweep_time
 
 
@@ -256,9 +263,13 @@ class CVACONPRO:
             "waveform_templates"]["CVACONPRO"]["expand"] = int(self.number_z_steps)
         self.model.configuration[
             "waveform_templates"]["CVACONPRO"]["repeat"] = int(1)
+        print("waveform template updated")
+        self.waveform_dict = self.model.active_microscope.calculate_all_waveform()
+        print(f"waveform dict calculated = {self.waveform_dict}")
         self.model.active_microscope.prepare_next_channel()
+        print("prepare next channel called")
         self.model.active_microscope.daq.set_external_trigger("/PXI6259/PFI1")
-
+        print("external trigger called")
         # Configure the constant velocity scan.
         self.asi_stage.scanr(
             start_position_mm=self.start_position_mm,
@@ -266,19 +277,22 @@ class CVACONPRO:
             enc_divide=desired_mechanical_step_size_mm,
             axis=self.axis
         )
+        print("scan r set")
         self.end_signal_temp = 0
 
         self.current_z_position_um = self.start_position_um
 
     def main_signal_function(self):
+        print("main signal function called")
         if self.end_acquisition:
             return False
 
         self.asi_stage.start_scan(self.axis)
+        print("scan started main signal function")
         return True
 
     def end_signal_function(self):
-        self.end_signal_temp += 1
+
         # if self.model.stop_acquisition:
         #     return True
         #
@@ -296,15 +310,18 @@ class CVACONPRO:
         # Configure the constant velocity/confocal projection mode
 
         print("end signal function called")
+        self.end_signal_temp += 1
+        print(f"end signal temp = {self.end_signal_temp}")
+        print(f"end acquisition = {self.end_acquisition}")
         if self.end_signal_temp > 0 or self.end_acquisition:
             # Reset the settings - This should only be done after the last channel.
             self.model.configuration[
                 "experiment"]["MicroscopeState"]["waveform_template"] = "Default"
             self.model.active_microscope.current_channel = 0
-            # self.model.active_microscope.daq.external_trigger = None
+            self.model.active_microscope.daq.external_trigger = None
 
             self.model.active_microscope.prepare_next_channel()
-            self.model.active_microscope.daq.set_external_trigger(None)
+            # self.model.active_microscope.daq.set_external_trigger(None)
             return True
         # return self.end_acquisition
 
@@ -323,10 +340,10 @@ class CVACONPRO:
         self.model.configuration[
             "experiment"]["MicroscopeState"]["waveform_template"] = "Default"
         self.model.active_microscope.current_channel = 0
-        # self.model.active_microscope.daq.external_trigger = None
+        self.model.active_microscope.daq.external_trigger = None
 
         self.model.active_microscope.prepare_next_channel()
-        self.model.active_microscope.daq.set_external_trigger(None)
+        # self.model.active_microscope.daq.set_external_trigger(None)
         return True
 
     def pre_data_function(self):

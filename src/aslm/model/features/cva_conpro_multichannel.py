@@ -158,17 +158,18 @@ class CVACONPROMULTICHANNEL:
                 ) / desired_mechanical_step_size_mm
             )
         logger.debug(f"Number of Z Steps {self.number_z_steps}")
-
+        print(f"Number of Z Steps {self.number_z_steps}")
         # Get the maximum speed for the stage.
         self.asi_stage.set_speed(percent=1)
         max_speed = self.asi_stage.get_speed(axis=self.axis)
         logger.debug(f"Axis {self.axis} Maximum Speed (mm/s): {max_speed}")
+        print(f"Axis {self.axis} Maximum Speed (mm/s): {max_speed}")
 
         # Get the minimum speed for the stage.
         self.asi_stage.set_speed(percent=0.0001)
         minimum_speed = self.asi_stage.get_speed(axis=self.axis)
         logger.debug(f"Axis {self.axis} Minimum Speed (mm/s): {minimum_speed}")
-
+        print(f"Axis {self.axis} Minimum Speed (mm/s): {minimum_speed}")
         # Move to start position. Move axis absolute is in units microns.
         self.asi_stage.set_speed(percent=0.7)
         self.asi_stage.move_axis_absolute(
@@ -177,6 +178,8 @@ class CVACONPROMULTICHANNEL:
             wait_until_done=True)
         logger.debug(f"Current Stage Position (mm) "
                      f"{self.asi_stage.get_axis_position(self.axis) / 1000.0}")
+        print(f"Current Stage Position (mm) "
+                     f"{self.asi_stage.get_axis_position(self.axis) / 1000.0}")
 
         # Get Microscope State
         self.microscope_state = self.model.configuration[
@@ -184,7 +187,7 @@ class CVACONPROMULTICHANNEL:
         self.stack_cycling_mode = self.microscope_state["stack_cycling_mode"]
         self.channels = self.microscope_state["selected_channels"]
         self.current_channel_in_list = 0
-        self.model.active_microscope.current_channel = 0
+        # self.model.active_microscope.current_channel = 0
 
         # Configure the constant velocity/confocal projection mode
         self.model.configuration[
@@ -196,23 +199,31 @@ class CVACONPROMULTICHANNEL:
 
         # Set filter, exposure time, and prepare acquisition in daq
         self.model.active_microscope.prepare_next_channel()
+        print("next channel channel prepared")
         self.model.active_microscope.daq.set_external_trigger("/PXI6259/PFI1")
+        print("external trigger set")
 
         # Calculate the readout time for the camera and microscope sweep time.
         self.readout_time = self.model.active_microscope.get_readout_time()
+        print(f"Readout Time (s): {self.readout_time}")
         _, sweep_times = self.model.active_microscope.calculate_exposure_sweep_times(
             self.readout_time)
+        print(f"sweep_times = {sweep_times}")
+        print(f"current channel = {self.model.active_microscope.current_channel}")
         self.current_sweep_time = sweep_times[
             f"channel_{self.model.active_microscope.current_channel}"]
+        print(f"current sweep time = {self.current_sweep_time}")
+
 
         # Get the desired speed for the stage.
         desired_speed = desired_mechanical_step_size_mm / self.current_sweep_time
         logger.debug(f"Axis {self.axis} Desired Speed (mm/s): {desired_speed}")
+        print(f"Axis {self.axis} Desired Speed (mm/s): {desired_speed}")
 
         self.asi_stage.set_speed(velocity_dict={"X": desired_speed})
         stage_velocity = self.asi_stage.get_speed(axis=self.axis)
         logger.debug(f"Axis {self.axis} Actual Speed (mm/s): {stage_velocity}")
-
+        print(f"Axis {self.axis} Actual Speed (mm/s): {stage_velocity}")
         # Inaccurate velocity results in inaccurate step size.
         # Update the Microscope/Configuration to record the actual step size
         actual_mechanical_step_size_mm = stage_velocity * self.current_sweep_time
@@ -227,7 +238,8 @@ class CVACONPROMULTICHANNEL:
 
         logger.debug(f"Axis {self.axis} Actual Mechanical Step Size (mm): "
                      f"{actual_mechanical_step_size_mm}")
-
+        print(f"Axis {self.axis} Actual Mechanical Step Size (mm): "
+                     f"{actual_mechanical_step_size_mm}")
         # Configure the constant velocity scan.
         self.asi_stage.scanr(
             start_position_mm=self.start_position_mm,
@@ -235,14 +247,17 @@ class CVACONPROMULTICHANNEL:
             enc_divide=desired_mechanical_step_size_mm,
             axis=self.axis
         )
+        print("scan r set")
 
         self.current_z_position_um = self.start_position_um
 
     def main_signal_function(self):
+        print("main signal function called")
         if self.end_acquisition:
             return False
 
         self.asi_stage.start_scan(self.axis)
+        print("scan main function started")
         return True
 
     def end_signal_function(self):
@@ -288,6 +303,13 @@ class CVACONPROMULTICHANNEL:
 
         """
         print("Clean up signal function called")
+        self.model.configuration[
+            "experiment"]["MicroscopeState"]["waveform_template"] = "Default"
+        self.model.active_microscope.current_channel = 0
+        self.model.active_microscope.daq.external_trigger = None
+        self.model.active_microscope.prepare_next_channel()
+        # self.model.active_microscope.daq.set_external_trigger()
+        self.asi_stage.set_speed(percent=0.7)
         return True
 
     def pre_data_function(self):
@@ -313,6 +335,7 @@ class CVACONPROMULTICHANNEL:
             self.image_writer.write_frames(frame_ids)
 
     def end_data_function(self):
+        pos = self.asi_stage.get_axis_position(self.axis)
         """Evaluate end condition for constant velocity acquisition.
 
         Returns
@@ -320,6 +343,9 @@ class CVACONPROMULTICHANNEL:
         bool
             True if the acquisition is complete, False otherwise.
         """
+        print(f"redceived frames = {self.received_frames}, "
+              f"number z steps = {self.number_z_steps}")
+        print(f"Position: {pos} Stop Position: {self.stop_position * 1000} ")
         if self.received_frames >= self.number_z_steps:
             self.end_acquisition = True
             self.model.stop_acquisition = True

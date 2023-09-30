@@ -935,16 +935,22 @@ class DCAM:
         return True
 
     def prop_setgetvalue(self, idprop, fValue, option=0):
-        """
-        Set and get property value
+        """ Set and get property value
 
-        args:
-            arg1(DCAM_IDPROP): property id
-            arg2(double): input value for setting and receive actual set value by ref
+        Parameters
+        ----------
+        idprop : DCAM_IDPROP
+            property id
+        fValue : double
+            input value for setting and receive actual set value by ref
+        option : int, optional
+            option for setting value, by default 0
 
-        Returns:
-            double
-            if False, error happened.  lasterr() returns the DCAMERR value
+        Returns
+        -------
+        value : c_double
+            actual set value
+
         """
         if not self.__hdcam:
             return self.__result(DCAMERR.INVALIDHANDLE)  # instance is not opened yet.
@@ -986,17 +992,36 @@ class DCAM:
         return [None, None, None]
 
     def set_property_value(self, name, value):
-        """
-        # this function will set property value according to property name
+        """ Set property value for Hamamatsu Camera
+
+        For the property name, this function retrieves the property code from the
+        property_dict and sets the property value to the given value.
+
+        If the property name is not in the property_dict, returns False.
+
+        If the property name is in the property_dict, function makes sure that it is
+        within the minimum and maximum values for the property, and is a multiple of
+        the property step size.
+
+        Parameters
+        ----------
+        name : str
+            name of the property to set
+        value : float
+            value to set the property to
+
+        Returns
+        -------
+        bool
+            True if the property was set successfully, False otherwise
+
         """
         if name not in property_dict:
             print(
-                "could not set value for",
-                name,
-                "please make sure the property name",
-                "is correct and is added to property_dict!",
-            )
+                "Could not set value for", name,
+                "Please make sure the property name is correct and in property_dict.")
             return False
+
         # get property code setPropertyValue
         idprop = property_dict[name]
 
@@ -1009,7 +1034,7 @@ class DCAM:
 
         if property_value_min is None:
             print("Could not set attribute", name)
-            print("property range:", name, property_value_min, property_value_max)
+            print("Property range:", name, property_value_min, property_value_max)
             return False
 
         # Cast value to a multiple of step size
@@ -1018,32 +1043,29 @@ class DCAM:
 
         if value < property_value_min:
             print(
-                " The property value of ",
-                value,
-                "is less than minimum of",
-                property_value_min,
-                name,
-                "setting to minimum",
+                "The property value of ", value,
+                "is less than minimum of", property_value_min,
+                name, "setting to minimum",
             )
             value = property_value_min
+
         if value > property_value_max:
             print(
-                " The property value of",
-                value,
-                "is greater than maximum of",
-                property_value_max,
-                name,
-                "setting to maximum",
+                "The property value of", value,
+                "is greater than maximum of", property_value_max,
+                name, "setting to maximum",
             )
             value = property_value_max
 
         # Set value and get what is set
         final_configuration = self.prop_setgetvalue(idprop, value)
 
-        if abs(final_configuration - value) < value / 100:
+        # Set arbitrary threshold to 5% (was 1% previously)
+        if abs(final_configuration - value) < (value / 20):
             return True
         else:
-            print(name, "Configuration Failed", value, final_configuration)
+            print("HamamatsuAPI - Configuration failed for", name,
+                  "Desired value:", value, "Actual value:", final_configuration)
             return False
 
     def get_property_value(self, name):

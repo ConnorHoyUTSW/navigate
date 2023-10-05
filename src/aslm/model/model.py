@@ -46,11 +46,6 @@ from aslm.model.features.autofocus import Autofocus
 from aslm.model.features.constant_velocity_acquisition import (
     ConstantVelocityAcquisition,
 )
-from aslm.model.features.cva_ttl import CVATTL
-from aslm.model.features.cva_conpro import CVACONPRO
-from aslm.model.features.cva_singlewave import CVASINGLEWAVE
-from aslm.model.features.cva_cont import CVACONT
-from aslm.model.features.cva_conpro_multichannel import CVACONPROMULTICHANNEL
 from aslm.model.features.image_writer import ImageWriter
 from aslm.model.features.auto_tile_scan import CalculateFocusRange  # noqa
 from aslm.model.features.common_features import (
@@ -327,16 +322,15 @@ class Model:
                     },
                 )
             ],
-            "projection": [{"name": PrepareNextChannel}],
+            "projection": [
+                {"name": PrepareNextChannel}
+            ],
             "confocal-projection": [
                 {"name": PrepareNextChannel},
             ],
-            "ConstantVelocityAcquisition": [{"name": ConstantVelocityAcquisition}],
-            "CVATTL": [{"name": CVATTL}],
-            "CVACONPRO": [{"name": CVACONPRO}],
-            "CVASINGLEWAVE": [{"name": CVASINGLEWAVE}],
-            "CVACONT": [{"name": CVACONT}],
-            "CVACONPROMULTICHANNEL":[{"name": CVACONPROMULTICHANNEL}],
+            "ConstantVelocityAcquisition": [
+                {"name": ConstantVelocityAcquisition}
+            ],
             "customized": [],
         }
         self.load_feature_records()
@@ -656,16 +650,6 @@ class Model:
                 self.signal_container.end_flag = True
             if self.imaging_mode == "ConstantVelocityAcquisition":
                 self.active_microscope.stages["z"].stop()
-            if self.imaging_mode == "CVATTL":
-                self.active_microscope.stages["z"].stop()
-            if self.imaging_mode == "CVACONPRO":
-                self.active_microscope.stages["z"].stop()
-            if self.imaging_mode == "CVASINGLEWAVE":
-                self.active_microscope.stages["z"].stop()
-            if self.imaging_mode == "CVACONT":
-                self.active_microscope.stages["z"].stop() 
-            if self.imaging_mode == "CVACONPROMULTICHANNEL":
-                self.active_microscope.stages["z"].stop()
             if self.signal_thread:
                 self.signal_thread.join()
             if self.data_thread:
@@ -952,7 +936,9 @@ class Model:
             print("DAQ Trigger Sent")
             self.logger.info("DAQ Trigger Sent")
             self.active_microscope.daq.run_acquisition()
+            print("DAQ Trigger Sent Successful")
         except:  # noqa
+            print("DAQ Trigger Failed")
             self.active_microscope.daq.stop_acquisition()
             self.active_microscope.daq.prepare_acquisition(
                 f"channel_{self.active_microscope.current_channel}",

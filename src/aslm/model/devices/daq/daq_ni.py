@@ -34,6 +34,7 @@
 import logging
 from threading import Lock
 import traceback
+import time
 
 # Third Party Imports
 import nidaqmx
@@ -215,7 +216,7 @@ class NIDAQ(DAQBase):
                 self.external_trigger)
 
             # change camera task to so that it can be triggered again.
-            self.camera_trigger_task.triggers.start_trigger.retriggerable = False
+            self.camera_trigger_task.triggers.start_trigger.retriggerable = True
 
             # add callback function to analog tasks
             for board_name in self.analog_output_tasks.keys():
@@ -500,16 +501,20 @@ class NIDAQ(DAQBase):
         None
         """
         try:
-            self.camera_trigger_task.stop()
-            self.camera_trigger_task.close()
+
+            if self.camera_trigger_task is not None:
+                self.camera_trigger_task.stop()
+                self.camera_trigger_task.close()
 
             if self.trigger_mode == "self-trigger":
-                self.master_trigger_task.stop()
-                self.master_trigger_task.close()
+                if self.master_trigger_task is not None:
+                    self.master_trigger_task.stop()
+                    self.master_trigger_task.close()
 
             for k, task in self.analog_output_tasks.items():
-                task.stop()
-                task.close()
+                if task is not None:
+                    task.stop()
+                    task.close()
 
         except (AttributeError, nidaqmx.errors.DaqError) as e:
             print(traceback.format_exc())

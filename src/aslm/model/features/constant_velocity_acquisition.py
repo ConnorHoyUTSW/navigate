@@ -341,10 +341,17 @@ class ConstantVelocityAcquisition:
         bool
             True if the acquisition is complete, False otherwise.
         """
+        pos = self.asi_stage.get_axis_position(self.axis)
+        print(f"self.received_frames = {self.received_frames}, expected frames = {self.number_z_steps}")
+        print(f"self.total_received_frames = {self.total_received_frames}, expected frames = {self.total_expected_frames}")
+        print(f"pos = {pos}, stop position = {self.stop_position_um}")
         if self.total_received_frames >= self.total_expected_frames:
+            print("if statement total recieved frames")
             self.model.stop_acquisition = True
-
-        if self.received_frames >= self.number_z_steps:
+            return True
+        elif self.received_frames >= (self.number_z_steps):
+            print("elif statement self.receieved frames")
+            self.end_acquisition = True
             # If we don't have the self.model.stop_acquisition flag set to True here,
             # we never leave this function. However, if we do set it to True, we never
             # get to the second channel.

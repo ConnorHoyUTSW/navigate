@@ -482,7 +482,8 @@ class NIDAQ(DAQBase):
             pass
         try:
             self.camera_trigger_task.stop()
-            self.master_trigger_task.stop()
+            if self.trigger_mode == "self-trigger":
+                self.master_trigger_task.stop()
         except nidaqmx.DaqError:
             print(traceback.format_exc())
             pass

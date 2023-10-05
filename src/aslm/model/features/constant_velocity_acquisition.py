@@ -347,7 +347,8 @@ class ConstantVelocityAcquisition:
         print(f"pos = {pos}, stop position = {self.stop_position_um}")
         if self.total_received_frames >= self.total_expected_frames:
             print("if statement total recieved frames")
-            self.model.stop_acquisition = True
+            self.end_acquisition = True
+            # self.model.stop_acquisition = True
             return True
         elif self.received_frames >= (self.number_z_steps):
             print("elif statement self.receieved frames")

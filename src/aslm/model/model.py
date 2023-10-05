@@ -916,20 +916,26 @@ class Model:
 
         TODO: Cleanup.
         """
+        print("snap_image started")
         if hasattr(self, "signal_container"):
+            print("signal_container exists")
             self.signal_container.run()
+            print("signal_container running")
 
         # Stash current position, channel, timepoint. Do this here, because signal
         # container functions can inject changes to the stage. NOTE: This line is
         # wildly expensive when get_stage_position() does not cache results.
         stage_pos = self.get_stage_position()
+        print("stage position acquired")
         self.data_buffer_positions[self.frame_id][0] = stage_pos["x_pos"]
         self.data_buffer_positions[self.frame_id][1] = stage_pos["y_pos"]
         self.data_buffer_positions[self.frame_id][2] = stage_pos["z_pos"]
         self.data_buffer_positions[self.frame_id][3] = stage_pos["theta_pos"]
         self.data_buffer_positions[self.frame_id][4] = stage_pos["f_pos"]
+        print("buffer position acquired")
 
         self.active_microscope.turn_on_laser()
+        print("laser turned on")
 
         # Run the acquisition
         try:

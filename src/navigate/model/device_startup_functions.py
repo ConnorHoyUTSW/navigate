@@ -136,6 +136,13 @@ def load_camera_connection(configuration, camera_id=0, is_synthetic=False):
             "type"
         ]
 
+    camera_id = 1   # Need to do this or else navigate will try to load the VAST camera and throw an error!
+                    # VAST camera  = 100771
+                    # Scope camera = 304389
+                    # I think DCAM API loads all camera SN in ascending order, so you need the right ID...
+
+    print(f"The camera id is {camera_id}")
+
     if cam_type in ["HamamatsuOrca", "HamamatsuOrcaLightning", "HamamatsuOrcaFire"]:
         # Locally Import Hamamatsu API and Initialize Camera Controller
         HamamatsuController = importlib.import_module(
@@ -517,6 +524,20 @@ def load_stages(configuration, is_synthetic=False, plugin_devices={}):
                     )
                 )
 
+        # VAST Stage loading...
+        elif stage_type == "VASTStage" and platform.system() == "Windows":
+            from navigate.model.devices.stages.stage_vast import (
+                build_VAST_connection,
+            )
+
+            stage_devices.append(
+                auto_redial(
+                    build_VAST_connection,
+                    (),
+                    exception=UserWarning,
+                )
+            )
+
         elif stage_type == "GalvoNIStage" and platform.system() == "Windows":
             stage_devices.append(DummyDeviceConnection())
 
@@ -614,6 +635,12 @@ def start_stage(
         from navigate.model.devices.stages.stage_asi import ASIStage
 
         return ASIStage(microscope_name, device_connection, configuration, id)
+
+    # VAST stage start
+    elif device_type == "VASTStage":
+        from navigate.model.devices.stages.stage_vast import VASTStage
+
+        return VASTStage(microscope_name, device_connection, configuration, id)
 
     elif device_type == "GalvoNIStage":
         from navigate.model.devices.stages.stage_galvo import GalvoNIStage
@@ -1256,6 +1283,17 @@ def load_devices(configuration, is_synthetic=False, plugin_devices={}) -> dict:
     """
 
     devices = {}
+    # load stage
+    if "stage" in configuration["configuration"]["hardware"].keys():
+        device_config = configuration["configuration"]["hardware"]["stage"]
+        devices["stages"] = {}
+        stages = load_stages(configuration, is_synthetic, plugin_devices)
+        for i, stage in enumerate(stages):
+            device_ref_name = build_ref_name(
+                "_", device_config[i]["type"], device_config[i]["serial_number"]
+            )
+            devices["stages"][device_ref_name] = stage
+
     # load camera
     if "camera" in configuration["configuration"]["hardware"].keys():
         devices["camera"] = {}
@@ -1320,16 +1358,5 @@ def load_devices(configuration, is_synthetic=False, plugin_devices={}) -> dict:
     # load daq
     if "daq" in configuration["configuration"]["hardware"].keys():
         devices["daq"] = start_daq(configuration, is_synthetic)
-
-    # load stage
-    if "stage" in configuration["configuration"]["hardware"].keys():
-        device_config = configuration["configuration"]["hardware"]["stage"]
-        devices["stages"] = {}
-        stages = load_stages(configuration, is_synthetic, plugin_devices)
-        for i, stage in enumerate(stages):
-            device_ref_name = build_ref_name(
-                "_", device_config[i]["type"], device_config[i]["serial_number"]
-            )
-            devices["stages"][device_ref_name] = stage
 
     return devices

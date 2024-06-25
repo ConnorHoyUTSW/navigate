@@ -28,7 +28,7 @@ class VASTController:
 
     def __del__(self):
         self.close()
-        self.vast_process.kill()
+        self.vast_process.kill() # Maybe don't just rudely kill the process... Is there a VAST.shutdown()?
 
     def close(self):
         self.f.close()
@@ -107,7 +107,11 @@ class VASTController:
         # Move the stage first
         self.move_abs_um(x_um=x_pos, y_um=y_pos)
 
+        print(f"vast_controller/move_to_specified_position : {(theta_pos)}")
+        print(f"(theta_pos - self.theta_pos) : {(theta_pos - self.theta_pos)}")
+        print(f"pre-rotation STP: {(self.theta_pos)}")
         # Do an "absolute" capillary rotation
         self.rotate_deg(
             theta=(theta_pos - self.theta_pos)
         )
+        print(f"post-rotation STP: {(self.theta_pos)}")

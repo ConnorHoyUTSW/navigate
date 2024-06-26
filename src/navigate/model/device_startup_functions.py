@@ -136,10 +136,10 @@ def load_camera_connection(configuration, camera_id=0, is_synthetic=False):
             "type"
         ]
 
-    camera_id = 1   # Need to do this or else navigate will try to load the VAST camera and throw an error!
-                    # VAST camera  = 100771
-                    # Scope camera = 304389
-                    # I think DCAM API loads all camera SN in ascending order, so you need the right ID...
+    # camera_id = 1   # Need to do this or else navigate will try to load the VAST camera and throw an error!
+    #                 # VAST camera  = 100771
+    #                 # Scope camera = 304389
+    #                 # I think DCAM API loads all camera SN in ascending order, so you need the right ID...
 
     print(f"The camera id is {camera_id}")
 

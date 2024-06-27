@@ -190,10 +190,13 @@ class VASTStage(StageBase):
         bool
             Was the move successful?
         """
-        print("VAST MOVE CALLED")
+        print("\nvast_stage/move_absolute: BEGIN")
+
         pos_dict = self.verify_abs_position(move_dictionary)
         if not pos_dict:
             return False
+
+        print(f"\tpos_dict = {pos_dict}")
 
         # rely on cached positions
         # if len(pos_dict.keys()) < 3:
@@ -212,9 +215,12 @@ class VASTStage(StageBase):
                 move_stage[axis] = False
             else:
                 move_stage[axis] = True
+                print(f"\tmove_stage[{axis}] = {move_stage[axis]}")
                 setattr(self, f"stage_{self.axes_mapping[axis]}_pos", pos_dict[axis])
 
-        print(f"stage/move_absolute : {(self.stage_x_pos, self.stage_y_pos, self.stage_theta_pos)}")
+        print(f"\tself.stage_x_pos = {self.stage_x_pos}")
+        print(f"\tself.stage_y_pos = {self.stage_y_pos}")
+        print(f"\tself.stage_theta_pos = {self.stage_theta_pos}")
 
         move_stage = any(move_stage.values())
         if move_stage is True:

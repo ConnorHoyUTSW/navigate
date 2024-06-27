@@ -38,6 +38,8 @@ class VASTController:
 
         print("Beginning VAST connection...")
 
+        # NOTE: Pipe will fail due to win32 File not found error if the DebugView is not open!
+        
         while not connect_init:
             try:
                 self.f = open(r'\\.\pipe\VASTInteropPipe', 'r+b', 0)
@@ -106,14 +108,27 @@ class VASTController:
         )
     
     def move_to_specified_position(self, x_pos=0.0, y_pos=0.0, theta_pos=0.0):
-        # Move the stage first
-        self.move_abs_um(x_um=x_pos, y_um=y_pos)
 
-        print(f"vast_controller/move_to_specified_position : {(theta_pos)}")
-        print(f"(theta_pos - self.theta_pos) : {(theta_pos - self.theta_pos)}")
-        print(f"pre-rotation STP: {(self.theta_pos)}")
-        # Do an "absolute" capillary rotation
-        self.rotate_deg(
-            theta=(theta_pos - self.theta_pos)
+        print("\nvast_controller/move_to_specified_position: BEGIN")
+        print(f"\ttheta_pos = {(theta_pos)}")
+        print(f"\tself.theta_pos = {(self.theta_pos)}")
+        print(f"\t(theta_pos - self.theta_pos) = {(theta_pos - self.theta_pos)}")
+
+        print("\n---- SEND MOVE COMMAND ----")
+        # Move the stage first
+        # self.move_abs_um(x_um=x_pos, y_um=y_pos)
+        # Perform relative move in (x,y). Seems to work better for the x-axis.
+        self.move_rel_um(
+            x_um=(x_pos - self.x_pos),
+            y_um=(y_pos - self.y_pos)
         )
-        print(f"post-rotation STP: {(self.theta_pos)}")
+
+        # If there is a theta move, do an "absolute" capillary rotation
+        if theta_pos != self.theta_pos:
+            self.rotate_deg(theta=(theta_pos - self.theta_pos))
+
+        print("\nvast_controller/move_to_specified_position: END")
+        print(f"\ttheta_pos = {(theta_pos)}")
+        print(f"\tself.theta_pos = {(self.theta_pos)}")
+        print(f"\t(theta_pos - self.theta_pos) = {(theta_pos - self.theta_pos)}")
+        

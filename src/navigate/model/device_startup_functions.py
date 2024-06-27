@@ -684,7 +684,7 @@ def start_stage(
         return ASIStage(microscope_name, device_connection, configuration, id)
 
     # VAST stage start
-    elif device_type == "VASTStage":
+    elif device_type == "VAST":
         from navigate.model.devices.stages.stage_vast import VASTStage
 
         return VASTStage(microscope_name, device_connection, configuration, id)
@@ -1442,17 +1442,6 @@ def load_devices(configuration, is_synthetic=False, plugin_devices={}) -> dict:
     """
 
     devices = {}
-    # load stage
-    if "stage" in configuration["configuration"]["hardware"].keys():
-        device_config = configuration["configuration"]["hardware"]["stage"]
-        devices["stages"] = {}
-        stages = load_stages(configuration, is_synthetic, plugin_devices)
-        for i, stage in enumerate(stages):
-            device_ref_name = build_ref_name(
-                "_", device_config[i]["type"], device_config[i]["serial_number"]
-            )
-            devices["stages"][device_ref_name] = stage
-
     # load camera
     if "camera" in configuration["configuration"]["hardware"].keys():
         devices["camera"] = {}

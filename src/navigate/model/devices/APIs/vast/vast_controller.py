@@ -10,7 +10,7 @@ class VASTController:
     DEG_TO_US = 1 / 0.72
 
     def __init__(self):
-        self.holster = "E:\\TestAutoSampIntegration\\bin\\Debug\\TestAutoSampIntegration"
+        self.holster = "C:\\Users\\mesoO\\Documents\\TestAutoSampIntegration\\bin\\Debug\\TestAutoSampIntegration.exe"
         self.f = None
         self.vast_process = subprocess.Popen(self.holster)
 
@@ -36,11 +36,14 @@ class VASTController:
     def connect(self):
         connect_init = False
 
+        print("Beginning VAST connection...")
+
         while not connect_init:
             try:
                 self.f = open(r'\\.\pipe\VASTInteropPipe', 'r+b', 0)
                 connect_init = True
-            except:
+            except Exception as e:
+                print(e)
                 time.sleep(1)
             
             print("Waiting for connection..." if not connect_init else "Connection established!")

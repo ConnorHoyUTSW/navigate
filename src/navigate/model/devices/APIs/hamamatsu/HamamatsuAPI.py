@@ -759,6 +759,10 @@ class DCAM:
             c_int32(int("0x04000102", 0))
         ).strip("S/N: ")
 
+        print(f"DCAM > Found serial number: {self._serial_number}")
+
+        print(f"DCAM > camReg.numCameras = {camReg.numCameras}")
+
     def __del__(self):
         self.dev_close()
 

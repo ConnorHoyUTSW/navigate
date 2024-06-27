@@ -42,8 +42,7 @@ class VASTController:
             try:
                 self.f = open(r'\\.\pipe\VASTInteropPipe', 'r+b', 0)
                 connect_init = True
-            except Exception as e:
-                print(e)
+            except:
                 time.sleep(1)
             
             print("Waiting for connection..." if not connect_init else "Connection established!")

@@ -558,6 +558,17 @@ def load_stages(configuration, is_synthetic=False, plugin_devices={}):
                 )
             )
 
+        if stage_type == "VAST" and platform.system() == "Windows":
+            from navigate.model.devices.stages.stage_vast import build_VAST_connection
+
+            stage_devices.append(
+                auto_redial(
+                    build_VAST_connection,
+                    (),
+                    exception=Exception,
+                )
+            )
+
         elif stage_type == "GalvoNIStage" and platform.system() == "Windows":
             stage_devices.append(DummyDeviceConnection())
 

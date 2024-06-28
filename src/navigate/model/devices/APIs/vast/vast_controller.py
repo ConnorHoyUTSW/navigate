@@ -84,6 +84,9 @@ class VASTController:
         
         self.rotate(int(theta * VASTController.DEG_TO_US))
 
+        if self.wait_until_done:
+            self.wait()
+
     def move_rel(self, x, y):
         self.send(
             f"mrel,{x},{y}"
@@ -102,6 +105,10 @@ class VASTController:
             int(x_um * VASTController.UM_TO_US), 
             int(y_um * VASTController.UM_TO_US)
         )
+
+        # include in the relevant moves, maybe include in all later
+        if self.wait_until_done:
+            self.wait()
     
     def move_abs_um(self, x_um, y_um):
         self.x_pos = x_um
@@ -112,6 +119,14 @@ class VASTController:
             int(y_um * VASTController.UM_TO_US)
         )
     
+    def wait(self):
+        busy_status = 1 # anything but zero
+        itr = 0
+        while busy_status:
+            busy_status = self.check_motors_busy_status()
+            # print(f"Waiting {itr}:\t{busy_status}")
+            time.sleep(0.01)
+
     def check_motors_busy_status(self):
         busy_str = self.send("busy")
         return int(busy_str.split(',')[-1])

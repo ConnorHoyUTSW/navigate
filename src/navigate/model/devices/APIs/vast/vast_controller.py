@@ -57,14 +57,19 @@ class VASTController:
         )
 
     def send(self, s):
+        # Write to pipe
         self.f.write(struct.pack('I', len(s)) + s.encode(encoding="ascii"))   # Write str length and str
         self.f.seek(0)                               # EDIT: This is also necessary
-        print('Writing: ', s)
+        
+        # read from pipe
         n = struct.unpack('I', self.f.read(4))[0]    # Read str length
         s = self.f.read(n)                           # Read str
         self.f.seek(0)                               # Important!!!
-        s.decode("ascii")
-        print(f"Decoded:\t{s}")
+        
+        # output data, if any
+        out_str = s.decode()
+        if out_str:
+            return out_str
 
     def start_vast(self):
         self.send('boot')
@@ -107,6 +112,10 @@ class VASTController:
             int(y_um * VASTController.UM_TO_US)
         )
     
+    def check_motors_busy_status(self):
+        busy_str = self.send("busy")
+        return int(busy_str.split(',')[-1])
+
     def move_to_specified_position(self, x_pos=0.0, y_pos=0.0, theta_pos=0.0):
 
         print("\nvast_controller/move_to_specified_position: BEGIN")
